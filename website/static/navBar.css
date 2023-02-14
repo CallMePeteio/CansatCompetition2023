@@ -1,0 +1,14 @@
+
+
+.navbar {
+    background-color: #333;
+  }
+  
+  .navbar a {
+    color: white;
+  }
+  
+  .navbar a:hover {
+    color: lightgray;
+  }
+  

@@ -1,0 +1,28 @@
+WARNING:werkzeug: * Debugger is active!
+INFO:root:     The turnOnCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 1
+INFO:root:     The turnOnCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 1
+INFO:root:     The turnOnCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 1
+INFO:root:     The turnOffCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 0
+INFO:root:     The primeCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicprime, value: 1
+INFO:root:     The resetCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicreset, value: 1
+INFO:root:     The turnOffCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 0
+INFO:root:     The turnOnCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 1
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 375-917-371
+INFO:root:     The turnOnCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 1
+INFO:werkzeug:127.0.0.1 - - [18/Jan/2023 14:33:48] "POST / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [18/Jan/2023 14:33:48] "[36mGET /static/navBar.css HTTP/1.1[0m" 304 -
+INFO:werkzeug: * Detected change in 'D:\\Scripts\\Python\\canSat\\website\\main.py', reloading
+INFO:root:     The turnOnCansat button was pressed!
+INFO:root:     changed variable in transmit.json (path):basicisOn, value: 1
+INFO:werkzeug:127.0.0.1 - - [18/Jan/2023 14:33:53] "POST / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [18/Jan/2023 14:33:53] "[36mGET /static/navBar.css HTTP/1.1[0m" 304 -

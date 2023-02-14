@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+
+
+
+{% block content %}
+
+<style>
+  .button {
+    width: 100px;
+    height: 40px;
+  }
+
+  .circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+  }
+
+  .btnParagraph {
+    font-size: 14px;
+    padding-top: 0px;
+    list-style: none;
+    padding-bottom: 15px;
+  }
+
+  .boxHeightTop {
+    height: 300px;
+  }
+</style>
+
+<div style="height: 5vh;"></div>
+<div class="card m-4">
+  <form method="post">
+    <div class="card m-4 position-relative">
+
+      {% if online == True %}
+      <div class="circle bg-success position-absolute" style="top: 15px; right: 10px; transform: translateY(0%);"></div>
+      {% else %}
+      <div class="circle bg-warning position-absolute" style="top: 15px; right: 10px; transform: translateY(0%);"></div>
+      {% endif %}
+
+
+      <h5 class="card-header">Dashboard</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+
+        <!---------------------- BASIC  ---------------------->
+        <div class="col-sm-4">
+          <div class="card">
+            <div class="card-body boxHeightTop">
+              <h5 class="card-title text-center">Basic</h5>
+              <hr>
+              <div class="text-center m-4">
+                <button class="btn btn-primary m-1 button w-40" name="basic" value="turnOnCansat">On</button>
+                <button class="btn btn-warning m-1 button w-40" name="basic" value="turnOffCansat">Off</button>
+                <button class="btn btn-primary m-1 button w-40" name="basic" value="primeCansat">Prime</button>
+                <button class="btn btn-warning m-1 button w-40" name="basic" value="resetCansat">Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!---------------------- MISC FUNCTIONS ---------------------->
+        <div class="col-sm-4">
+          <div class="card">
+            <div class="card-body boxHeightTop">
+              <h5 class="card-title text-center">Misc Functions</h5>
+              <hr>
+              <div class="text-center m-4">
+                <button class="btn btn-primary m-1 button w-40" name="misc" value="beeper">Beeper</button>
+                <button class="btn btn-primary m-1 button w-40" name="misc" value="lights">Lights</button>
+                <button class="btn btn-primary m-1 button w-40" name="misc" value="prime">Prime</button>
+                <button class="btn btn-primary m-1 button w-40" name="misc" value="reset">Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!---------------------- CAMERA ---------------------->
+
+        <div class="col-sm-4">
+          <div class="card">
+            <div class="card-body boxHeightTop">
+              <h5 class="card-title text-center">Camera</h5>
+              <hr>
+              <div class="text-center m-4">
+
+                {% if cameraRecording == True %}
+                <li class="btnParagraph" style="padding-bottom: 0px;">Camera Recording!</li>
+                <li class="btnParagraph">Current Length of Video: {{ videoText }}min</li>
+                {% endif %}
+
+                <button class="btn btn-primary m-1 button w-40" name="camera" value="startVid">Start Vid</button>
+                <button class="btn btn-warning m-1 button w-40" name="camera" value="stopVid">Stop Vid</button>
+                <button class="btn btn-primary m-1 button w-80" name="camera" value="photo" style="width: 215px;">Take
+                  Photo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!---------------------- MANUAL CONTROL  ---------------------->
+      <div class="col-sm-4">
+        <div style="height: 5vh;"></div>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title text-center">Manual Control</h5>
+            <hr>
+            <div class="text-center m-4">
+
+              {% if online == True %}
+              <li class="btnParagraph">Current Heading: 94°</li>
+              {% endif %}
+
+              <button class="btn btn-primary m-1 button w-40" name="manualControl" value="left">Left</button>
+              <button class="btn btn-primary m-1 button w-40" name="manualControl" value="right">Right</button>
+              <hr>
+              <button class="btn btn-primary m-1 button" id="actiaveManual" name="manualControl" value="actiaveManual"
+                style="width: 215px;">Manual Control
+                On</button>
+
+              <button class="btn btn-warning m-1 button" name="manualControl" value="deAcviateManual"
+                style="width: 215px;">Manual Control
+                Off</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-12">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+    </div>
+</div>
+</form>
+
+<!-- DOSENT WORK -->
+<script>
+  var scrollPos = 0;
+
+  function storeScrollPos() {
+    scrollPos = window.scrollY;
+  }
+
+  document.getElementById("actiaveManual").addEventListener("actiaveManual", storeScrollPos);
+
+  window.onload = function () {
+    window.scrollTo(0, scrollPos);
+  }
+</script>
+
+{% endblock %}

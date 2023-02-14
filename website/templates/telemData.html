@@ -1,0 +1,195 @@
+
+{% extends "base.html" %}
+{% block title %}Telemetry Data{% endblock %}
+
+{% block content %}
+    <style>
+        .chartBox {
+            width: 100vh;
+            height: 42vh;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spacer {
+            padding-top: 5vh;
+        }
+
+    </style>
+
+    {% if online == True %}
+        <div class="container-fluid">
+
+                <h5 class="display-4 spacer" style="text-align: center;">Temperature</h5>
+                <div class="col-sm-6 col-md-4 chartBox">
+                    <div class="chart-box chartBox">
+                        {% set localIpAdress = localIpAdress + ":5200" %}
+                        <iframe src={{localIpAdress}} style="width: 100vh; height: 100%;"></iframe>
+                    </div>
+                </div>
+
+                <h5 class="display-4 spacer" style="text-align: center;">Pressure</h5>
+                <div class="col-sm-6 col-md-4 chartBox">
+                    <div class="chart-box chartBox">
+                        <iframe src="http://127.0.0.1:5100/" style="width: 100vh; height: 100%;"></iframe>
+                    </div>
+                </div>
+
+                <h5 class="display-4 spacer" style="text-align: center;">Humidity</h5>
+                <div class="col-sm-6 col-md-4 chartBox">
+                    <div class="chart-box chartBox">
+                        <iframe src="" frameborder="0"></iframe>
+                    </div>
+                </div>
+
+                <h5 class="display-4 spacer" style="text-align: center;">Humidity</h5>
+                <div class="col-sm-6 col-md-4 chartBox">
+                    <div class="chart-box chartBox">
+                        <iframe src="" frameborder="0"></iframe>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 chartBox">
+                    <div class="chart-box chartBox">
+                        <canvas id="chart5"></canvas>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 chartBox">
+                    <div class="chart-box chartBox">
+                        <canvas id="chart6"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    {% else %}
+        {% include 'error.html' %}
+    {% endif %}
+        
+
+
+-->
+
+
+
+<!--
+<script>
+//----------------------- Atmospheric Pressure -----------------------
+/*
+
+  var ctx = document.getElementById('artmoPressure').getContext('2d');
+  var chart = new Chart(ctx, {
+      // The type of chart we want to create
+      type: 'line',
+    // The data for our dataset
+      data: {
+          labels: {{ labels|safe }},
+          datasets: [{
+              label: 'Atmospheric Pressure',
+              backgroundColor: 'rgb(4,112,216)',
+              borderColor: 'rgb(4,112,216)',
+              borderWidth: 1, 
+              data: {{ values|safe }},
+              fill: false
+          }]
+      },
+      // Configuration options go here
+      options: {        
+        responsive: true,
+        maintainAspectRatio: false,
+        height: 3000
+}
+  });
+
+
+
+
+//------------------------ Estimated Attatude ------------------------
+
+  var ctx = document.getElementById('estimatedAttatude').getContext('2d');
+  var chart = new Chart(ctx, {
+      // The type of chart we want to create
+      type: 'line',
+      // The data for our dataset
+      data: {
+          labels: {{ labels|safe }},
+          datasets: [{
+              label: 'Estimated Attatude',
+              backgroundColor: 'rgb(4,112,216)',
+              borderColor: 'rgb(4,112,216)',
+              borderWidth: 1, 
+              data: {{ values|safe }},
+              fill: false
+          }]
+      },
+      // Configuration options go here
+      options: {        
+        responsive: true,
+        maintainAspectRatio: false,
+        height: 3000}
+  });
+
+
+
+
+//---------------------------- Temperature ---------------------------
+
+  var ctx = document.getElementById('temperature').getContext('2d');
+  var chart = new Chart(ctx, {
+      // The type of chart we want to create
+      type: 'line',
+      // The data for our dataset
+      data: {
+          labels: {{ labels|safe }},
+          datasets: [{
+              label: 'Temperature',
+              backgroundColor: 'rgb(4,112,216)',
+              borderColor: 'rgb(4,112,216)',
+              borderWidth: 1, 
+              data: {{ values|safe }},
+              fill: false
+          }]
+      },
+      // Configuration options go here
+      options: {        
+        responsive: true,
+        maintainAspectRatio: false,
+        height: 3000}
+  });
+
+
+
+
+//------------------------- Total Flight Time ------------------------
+
+    var ctx = document.getElementById('flightTime').getContext('2d');
+    var chart = new Chart(ctx, {
+      // The type of chart we want to create
+      type: 'line',
+      // The data for our dataset
+      data: {
+          labels: {{ labels|safe }},
+          datasets: [{
+              label: 'Total Flight Time',
+              backgroundColor: 'rgb(4,112,216)',
+              borderColor: 'rgb(4,112,216)',
+              borderWidth: 1, 
+              data: {{ values|safe }},
+              fill: false
+          }]
+      },
+      // Configuration options go here
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        height: 3000
+      }
+  });
+
+*/
+</script>
+-->
+{% endblock%}
