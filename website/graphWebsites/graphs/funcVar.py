@@ -9,8 +9,9 @@ import time
 debug = False
 
 DB_NAME = "database.db" # DEFINES THE NAME OF THE DB
-pathToDB = "E:\Scripts\Python\canSat\instance\database.db" # THIS IS THE PATH TO THE DATABASE
-pathToTransmitJson = "E:/Scripts/Python/canSat/instance/transmit.json" # TRANSMIT JSON FULL PATH
+pathToDB = "C:/Users/Bruker/Desktop/codin/CansatCompetition2023/instance/database.db" # THIS IS THE PATH TO THE DATABASE
+pathToReciveJson = "C:/Users/Bruker/Desktop/codin/CansatCompetition2023/instance/recive.json" # RECIVE JSON FULL PATH
+pathToTransmitJson = "C:/Users/Bruker/Desktop/codin/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
 
 graphUpdateInterval = 1000 # DEFINES HOW MANY TIMES A MILISECOND THE GRAPHS SHOULD UPDATE (ms)
 grafHostDict = {"temperature": ["0.0.0.0", "5200"], "pressure": ["0.0.0.0", "5100"], "gpsMap": ["0.0.0.0", "5900"]} # THIS KEEPS TRACK OF THE PORT AND IP ADRESS OF THE 

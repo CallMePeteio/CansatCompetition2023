@@ -15,9 +15,9 @@ import json
 
 db = SQLAlchemy() # MAKES THE DB OBJECT
 DB_NAME = "database.db" # DEFINES THE NAME OF THE DB
-pathToDB = "E:\Scripts\Python\canSat\instance\database.db" # THIS IS THE PATH TO THE DATABASE
-pathToReciveJson = "E:/Scripts/Python/canSat/instance/recive.json" # RECIVE JSON FULL PATH
-pathToTransmitJson = "E:/Scripts/Python/canSat/instance/transmit.json" # TRANSMIT JSON FULL PATH
+pathToDB = "C:/Users/Bruker/Desktop/codin/CansatCompetition2023/instance/database.db" # THIS IS THE PATH TO THE DATABASE
+pathToReciveJson = "C:/Users/Bruker/Desktop/codin/CansatCompetition2023/instance/recive.json" # RECIVE JSON FULL PATH
+pathToTransmitJson = "C:/Users/Bruker/Desktop/codin/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
 
 TX_RX_sleep = 1 # THIS IS HOW MUTCH THE SCRIPT WILL SLEEP BETWEEN TRANSMITTING AND RECIVING
 writeRecivedData = False # IF YOU SHOULD WRITE THE RECIVED DATA TO THE DB AND JSON FILE
