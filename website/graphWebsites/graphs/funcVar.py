@@ -4,6 +4,7 @@ from datetime import datetime
 
 import threading
 import sqlite3
+import socket
 import time
 
 debug = False
@@ -15,6 +16,8 @@ pathToTransmitJson = "C:/Users/Bruker/Desktop/codin/CansatCompetition2023/instan
 
 graphUpdateInterval = 1000 # DEFINES HOW MANY TIMES A MILISECOND THE GRAPHS SHOULD UPDATE (ms)
 grafHostDict = {"temperature": ["0.0.0.0", "5200"], "pressure": ["0.0.0.0", "5100"], "gpsMap": ["0.0.0.0", "5900"]} # THIS KEEPS TRACK OF THE PORT AND IP ADRESS OF THE 
+
+currentIp = socket.gethostbyname(socket.gethostname())
 
 """
 NOTE - NOTE - NOTE - NOTE - NOTE - NOTE - NOTE - NOTE - NOTE -  NOTE - NOTE - NOTE - 

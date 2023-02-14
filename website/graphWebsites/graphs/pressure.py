@@ -4,12 +4,11 @@ import plotly
 import plotly.graph_objects as go
 import numpy as np 
 
-from funcVar import pathToDB, grafHostDict, selectFromDB, debug, graphUpdateInterval
+from funcVar import pathToDB, grafHostDict, selectFromDB, debug, graphUpdateInterval, currentIp
 
 
 import pandas as pd 
-import sqlite3
-import time 
+import socket
 
 
 
@@ -72,7 +71,11 @@ def update_graph_live(n, existing):
     return dict(x=[[latestTime]], y=[[latestTemp]]) # RETURNS THE NEW DATA, IF THE DATA IS NOT EQUAL TO THE PAST DATA, THEN THE GRAF WILL NOT UPDATE
 
 
-hostingDetails = grafHostDict["pressure"]
-target=pressureGraph.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug)# RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
 
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    hostingDetails = grafHostDict["pressure"]
+
+    isRunning = s.connect_ex((currentIp, int(hostingDetails[1]))) == 0
+    if isRunning == False: 
+        target=pressureGraph.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug)# RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
 

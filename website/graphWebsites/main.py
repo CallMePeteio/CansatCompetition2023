@@ -30,5 +30,4 @@ def start():
     print(f"\n \n \n ---------------- Started Gps Map! ----------------")
 
 
-start()
 

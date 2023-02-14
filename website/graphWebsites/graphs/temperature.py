@@ -4,11 +4,11 @@ import plotly
 import plotly.graph_objects as go
 import numpy as np 
 
-from funcVar import pathToDB, grafHostDict, selectFromDB, debug, graphUpdateInterval
+from funcVar import pathToDB, grafHostDict, selectFromDB, debug, graphUpdateInterval, currentIp
 
 import pandas as pd 
-import sqlite3
-import time 
+import socket 
+ 
 
 
 
@@ -18,9 +18,6 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 temperatureGraph = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 def _create_fig():
-    con = sqlite3.connect(pathToDB) # CONNECTS TO THE DB
-    cursor = con.cursor() # MAKES THE CURSOR, FOR SELECTING TABLES AND ROWs
-
 
     flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], [1]) # SELECTS ALL OF THE FLIGHT DATA WITH THE LOGINID OF 1
     latestFlightID = flightData[len(flightData) -1][0] # FINDS THE LATEST FLIGHTID
@@ -61,10 +58,6 @@ def update_graph_live(n, existing):
     }
 
 
-    con = sqlite3.connect(pathToDB) # CONNECTS TO THE DB
-    cursor = con.cursor() # MAKES THE CURSOR, FOR SELECTING TABLES AND ROWs
-
-
     flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], [1]) # SELECTS ALL OF THE FLIGHT DATA WITH THE LOGINID OF 1
     latestFlightID = flightData[len(flightData) -1][0] # FINDS THE LATEST FLIGHTID
     flightData = selectFromDB(pathToDB, "telemdata", ["WHERE"], ["flightId"], [latestFlightID]) # SELECTS THE LATEST FLIGHT
@@ -75,6 +68,10 @@ def update_graph_live(n, existing):
     return dict(x=[[latestTime]], y=[[latestTemp]]) # RETURNS THE NEW DATA, IF THE DATA IS NOT EQUAL TO THE PAST DATA, THEN THE GRAF WILL NOT UPDATE
 
 
-hostingDetails = grafHostDict["temperature"]
-temperatureGraph.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug) # RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    hostingDetails = grafHostDict["temperature"]
+
+    isRunning = s.connect_ex((currentIp, int(hostingDetails[1]))) == 0
+    if isRunning == False: 
+        target=temperatureGraph.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug)# RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
 

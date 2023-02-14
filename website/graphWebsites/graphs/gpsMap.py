@@ -4,12 +4,13 @@
 import plotly.express as px
 import pandas as pd
 
-from funcVar import grafHostDict, selectFromDB, debug, pathToDB
+from funcVar import grafHostDict, selectFromDB, debug, pathToDB, currentIp
 from dash import html
 from dash import dcc
 from dash import *
 
 import random
+import socket
 import dash
 import time
 
@@ -70,5 +71,12 @@ def update_graph_live(n, existing):
 
     return dict(lat=[[latestLat]], lon=[[latestLon]]) # RETURNS THE NEW DATA, IF THE DATA IS NOT EQUAL TO THE PAST DATA, THEN THE GRAF WILL NOT UPDATE
 
-hostingDetails = grafHostDict["gpsMap"]
-target=gpsMap.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug)# RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
+
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    hostingDetails = grafHostDict["gpsMap"]
+
+    isRunning = s.connect_ex((currentIp, int(hostingDetails[1]))) == 0
+    if isRunning == False: 
+        target=gpsMap.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug)# RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
+
