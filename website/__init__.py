@@ -3,21 +3,21 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from datetime import datetime
-from sys import getsizeof
 from flask import Flask
-from os import path
 
-import threading
 import logging
 import sqlite3
+import struct
+import socket
+import fcntl
 import json 
 
 
 db = SQLAlchemy() # MAKES THE DB OBJECT
 DB_NAME = "database.db" # DEFINES THE NAME OF THE DB
-pathToDB = "C:/Users/petter/Desktop/coding/CansatCompetition2023/instance/database.db" # THIS IS THE PATH TO THE DATABASE
-pathToReciveJson = "C:/Users/petter/Desktop/coding/CansatCompetition2023/instance/recive.json" # RECIVE JSON FULL PATH
-pathToTransmitJson = "C:/Users/petter/Desktop/coding/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
+pathToDB = "/home/pi/Desktop/CansatCompetition2023/instance/database.db" # THIS IS THE PATH TO THE DATABASE
+pathToReciveJson = "/home/pi/Desktop/CansatCompetition2023/instance/recive.json" # RECIVE JSON FULL PATH
+pathToTransmitJson = "/home/pi/Desktop/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
 
 TX_RX_sleep = 1 # THIS IS HOW MUTCH THE SCRIPT WILL SLEEP BETWEEN TRANSMITTING AND RECIVING
 writeRecivedData = False # IF YOU SHOULD WRITE THE RECIVED DATA TO THE DB AND JSON FILE
@@ -30,6 +30,10 @@ loggingLevel = 20 # DEFINES THE LOGGING LEVEL
 logger = logging.getLogger() # MAKES THE LOGGING OBJECT
 logger.setLevel(loggingLevel) # SETS THE LEVEL AS DEFINED ABOVE
 
+
+currentIp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+currentIp.connect(("8.8.8.8", 80))
+currentIp = currentIp.getsockname()[0]
 
 
 def create_app():
@@ -217,3 +221,19 @@ def timeToMinutes(time, currentTime=False):
     minutes = (float(hr) * 60) + (float(sec) * 0.0166667) + float(min)
 
   return minutes
+
+
+"""
+____________________________________________ getIpAdress _________________________________________
+This function gets the current ip adress of the raspberry pi. This is a function because you can get ether eth0 or for example wlan0 ip adress. 
+
+interFace = This is what interface ip adress you want to get, forexample if you want to get wlan0 then enter "wlan0" (str)
+"""
+
+def getIpAdress(interFace):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', interFace[:15])
+        )[20:24])

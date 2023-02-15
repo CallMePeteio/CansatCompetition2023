@@ -114,7 +114,7 @@ def TX_RX_main(app):
             else:
                 logging.error(f"     Didnt send data to Cansat, because there wasnt enough time left to forfill the time constraint of {TX_RX_sleep}. Total elapsed time in this cycle: {elapsedTime(startTime)}")
 
-            if elapsedTime(startTime) < TX_RX_sleep:
+            if elapsedTime(startTime) < TX_RX_sleep - 0.03: # ADD A BIT OF PADDING, BECAUSE IT TAKES A BIT OF TIME TO CAUSE THE SLEE
                 time.sleep(TX_RX_sleep - elapsedTime(startTime))
 
 
