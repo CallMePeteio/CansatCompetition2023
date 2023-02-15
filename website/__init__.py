@@ -1,15 +1,19 @@
 
 
+from digitalio import DigitalInOut, Direction, Pull
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from datetime import datetime
 from flask import Flask
 
+import adafruit_rfm9x
 import logging
 import sqlite3
 import struct
 import socket
 import fcntl
+import busio
+import board 
 import json 
 
 
@@ -19,21 +23,31 @@ pathToDB = "/home/pi/Desktop/CansatCompetition2023/instance/database.db" # THIS 
 pathToReciveJson = "/home/pi/Desktop/CansatCompetition2023/instance/recive.json" # RECIVE JSON FULL PATH
 pathToTransmitJson = "/home/pi/Desktop/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
 
-TX_RX_sleep = 1 # THIS IS HOW MUTCH THE SCRIPT WILL SLEEP BETWEEN TRANSMITTING AND RECIVING
+TX_RX_sleep = 0.95 # THIS IS HOW MUTCH THE SCRIPT WILL SLEEP BETWEEN TRANSMITTING AND RECIVING
 writeRecivedData = False # IF YOU SHOULD WRITE THE RECIVED DATA TO THE DB AND JSON FILE
 
 """
 Level: NOTSET > DEBUG > INFO > WARNING > ERROR > CRITICAL
 Value:   0    >  10   >  20  >    30   >  40   >  50
 """
-loggingLevel = 20 # DEFINES THE LOGGING LEVEL
+from . loggingFont import formatFont
+loggingLevel = 10 # DEFINES THE LOGGING LEVEL
 logger = logging.getLogger() # MAKES THE LOGGING OBJECT
 logger.setLevel(loggingLevel) # SETS THE LEVEL AS DEFINED ABOVE
+logger = formatFont(logger)
 
 
 currentIp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 currentIp.connect(("8.8.8.8", 80))
 currentIp = currentIp.getsockname()[0]
+
+
+# Configure RFM9x LoRa Radio
+CS = DigitalInOut(board.CE1)
+RESET = DigitalInOut(board.D25)
+spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+radio = adafruit_rfm9x.RFM9x(spi, CS, RESET, 433.0)
+
 
 
 def create_app():

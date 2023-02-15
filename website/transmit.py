@@ -1,7 +1,7 @@
 
 
 
-from . import readJson, pathToTransmitJson, pathToReciveJson, pathToDB, TX_RX_sleep, logging, loggingLevel, timeToMinutes, selectFromDB, db, writeRecivedData
+from . import readJson, pathToTransmitJson, pathToReciveJson, pathToDB, TX_RX_sleep, logging, loggingLevel, timeToMinutes, selectFromDB, db, writeRecivedData, radio
 from flask_login import LoginManager, current_user
 from flask_sqlalchemy import SQLAlchemy
 from .models import GPSdata, Telemdata
@@ -27,20 +27,13 @@ Send data Dict is 232 bytes
 def sendData():
     with open(pathToTransmitJson, "r+") as inFile: # OPENS THE TRANSMIT FILE
         jsonData = json.load(inFile) # LOADS THE FILE
+        radio.send(bytes(str(jsonData), "utf-8")) # SENDS THE DATA WITH THE "rfm9x" LORA RADIO MODULE
 
-    """
-    EPIC SEND DATA SCIPT
-    """
-    time.sleep(random.uniform(0.3, 0.5))
 
-    return True
+    return jsonData
         
 
-def reciveData():
-    """
-    EPIC RECIVE DATA SCRIPT
-    """
-    time.sleep(random.uniform(0.3, 0.5))
+def reciveDataFunc():
 
     prevReciveData = {
         "gps": {
@@ -57,8 +50,28 @@ def reciveData():
         "telemdata": {
             "atmoPressure": 11.05, 
             "temperature": 22.23}}
+    
 
-    if reciveData != prevReciveData and writeRecivedData == True: # IF THERE IS NEW DATA
+    for i in range(10):
+        packet = radio.receive()
+        print(i)
+
+        if packet != None: 
+            break 
+
+    if packet is not None: 
+        try:
+            recvieData = str(packet, "utf-8")
+        except: 
+            logging.critical(f"     Error unpacking packet from cansat, packet recived: {packet}")
+            return None
+    else: 
+        logging.error(f"     Packet from cansat is: {packet}")
+        return None
+        
+    
+
+    if recvieData != prevReciveData and writeRecivedData == True: # IF THERE IS NEW DATA
 
 # -- GETS THE LAST FLIGHT ID AND THE START TIME OF THAT FLIGHT
         flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], ["1"], log=False) # GETS ALL OF THE PREVIUS FLIGHTS OF THE ADMIN
@@ -86,9 +99,9 @@ def reciveData():
         with open(pathToReciveJson, "w") as file: # OPENS THE FILE IN WRITE MODE 
             json.dump(recivedData, file) # DUMPS THE JSON TO THE JSON
 
-        prevReciveData = reciveData  #NOTE NOTE NOTE NOTE NOTE NEEDS TO BE UNCOMMEDED TO WORK
+        prevReciveData = recvieData  #NOTE NOTE NOTE NOTE NOTE NEEDS TO BE UNCOMMEDED TO WORK
 
-    return True # RETURNS TRUE TO NOT STOP READING AND WRITING
+    return recvieData # RETURNS TRUE TO NOT STOP READING AND WRITING
 
 
 
@@ -100,22 +113,25 @@ def elapsedTime(startTimeFloat):
 
 def TX_RX_main(app):
     with app.app_context(): # TO GET FULL PERMISSIONS TO READ AND WRITE TO DB
-        run = True
-        totalTime = 0
-        i=0
+        totalTime, i, sentData, reciveData = 0, 0, None, None
 
         while True: 
             startTime = time.time()
-            run = reciveData()
+            reciveData = reciveDataFunc()
 
 
             if elapsedTime(startTime) < TX_RX_sleep * 0.6:
-                run = sendData()
+                sentData = sendData()
             else:
-                logging.error(f"     Didnt send data to Cansat, because there wasnt enough time left to forfill the time constraint of {TX_RX_sleep}. Total elapsed time in this cycle: {elapsedTime(startTime)}")
+                logging.warning(f"     Didnt send data to Cansat, because there wasnt enough time left to forfill the time constraint of {TX_RX_sleep}. Total elapsed time in this cycle: {elapsedTime(startTime)}")
 
-            if elapsedTime(startTime) < TX_RX_sleep - 0.03: # ADD A BIT OF PADDING, BECAUSE IT TAKES A BIT OF TIME TO CAUSE THE SLEE
-                time.sleep(TX_RX_sleep - elapsedTime(startTime))
+
+
+            if elapsedTime(startTime) < TX_RX_sleep: # ADD A BIT OF PADDING, BECAUSE IT TAKES A BIT OF TIME TO CAUSE THE SLEE
+                try:    
+                    time.sleep(TX_RX_sleep - elapsedTime(startTime))
+                except: 
+                    time.sleep(TX_RX_sleep - (elapsedTime(startTime) - 0.08))
 
 
 
@@ -132,6 +148,8 @@ def TX_RX_main(app):
                 totalTime += elapsedTime(startTime) # ADDS THE ELAPSED TIME TO THE TOTALTIME VARIABLE
                 if str(i)[len(str(i)) -1] == "8": # IF I ENDS WITH "1" (EVRY 10TH TIME)
                     logging.debug(f"     Avrage Transmit and recive time: {totalTime/i}") # LOG OUT THE AVG TIME
+                    logging.debug(f"     Last data sent to Cansat: {sentData}")
+                    logging.debug(f"     Last data recived from Cansat: {reciveData} \n")
 
 
         raise Exception("Error ending or reciving data (run=False)")

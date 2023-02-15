@@ -31,6 +31,7 @@ if __name__ == "__main__":
     pressureThread = threading.Thread(target=pressureFunc)
     pressureThread.start()
     print(f"\n ---------------- Started The Pressure Graph! ----------------")
+    
 
 # -- STARTS & MAKES THE GPS THREAD
     gpsThread = threading.Thread(target=gpsMapFunc)
@@ -39,12 +40,14 @@ if __name__ == "__main__":
 
 # -- Starts the transmit thread
     transmitThread = threading.Thread(target=TX_RX_main, args=[app]) # MAKES THE TRANSMIT AND RECIVE THREAD
+    time.sleep(3)
     transmitThread.start() # RUNS THE THREAD
     print(f"\n ------------------ Starthed The Transmit Thread! -------------------")
+    time.sleep(0.5)
 
 
 # -- Starts the main flask app
-    app.run(host="0.0.0.0", debug=True, port=5000)
+    app.run(host="0.0.0.0", debug=False, port=5000) # NOTE IF DEBUG = TRUE, THEN THE THREADS WILL BE CALLED TWICE
  
 
 
