@@ -84,7 +84,7 @@ def secret():
     print()
 
     now = datetime.now()
-    currentTime = now.strftime("%Y-%m-d %H:%M:%S")
+    currentTime = now.strftime("%Y-%m-%d %H:%M:%S")
 
     flightMake = Flightmaster(loginId=current_user.id,  startTime=currentTime)
     db.session.add(flightMake)
@@ -92,7 +92,6 @@ def secret():
 
 
     flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], [current_user.id]) # SELECS ALL OF THE DATA FROM FLIGHTMASTER WHERE LOGINID IS CURRENT USER.ID
-
     latestFlightID = flightData[len(flightData) -1][0] # GETS THE LATEST FLIGHT ID
 
     latestFlightStartTime = flightData[len(flightData) -1][2] # FINDS THE LATEST FLIGHT STARTTIME, RETURNS YEAR:MONTH HR:MIN:SEC

@@ -86,9 +86,8 @@ def compressData(dictionary, seperator=","):
         if isinstance(values, dict): # IT THE TYPE OF THE VALUE IS A DICT, MEANING THAT THERE IS A NESTED DICT EXAMPLE "{"temprature": 34.1, "acceleration": {"x": -0.0017278495943173766, "y": 0.12649492919445038, "z": 0.9652832746505737}}"
             for nestedValues in values.values(): # LOOP OVER ALL OF THE ITEMS IN THE VALUE'S DICT
                 rtnString += str(nestedValues) + seperator # ADD THE VALUE TO THE "rtnString" VARIABLE, AND ADD A SEPERATOR EXAMPLE ","
-            break
-
-        rtnString += str(values) + seperator # ADD THE VALUE TO THE "rtnString" VARIABLE, AND ADD A SEPERATOR EXAMPLE ","
+        else:
+            rtnString += str(values) + seperator # ADD THE VALUE TO THE "rtnString" VARIABLE, AND ADD A SEPERATOR EXAMPLE ","
     return rtnString # RETURNS THE VARIABLE
 
 
@@ -105,27 +104,6 @@ def sendData():
         
 
 def writeReciveData(recivedData):
-
-    prevReciveData = {
-        "gps": {
-            "lat": 68.2075271897814,
-            "lon": 15.1544641159597},
-        "telemdata": {
-            "atmoPressure": 11.05, 
-            "temperature": 22.23}}
-
-    recivedData = {
-        "gps": {
-            "lat": 67.2075271897814,
-            "lon": 15.1544641159597},
-        "telemdata": {
-            "atmoPressure": 11.05, 
-            "temperature": 22.23}}
-    
-
-
-
-
 
 # -- GETS THE LAST FLIGHT ID AND THE START TIME OF THAT FLIGHT
     flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], ["1"], log=False) # GETS ALL OF THE PREVIUS FLIGHTS OF THE ADMIN
@@ -168,10 +146,14 @@ def TX_RX_main(app):
         while True: 
             packet = radio.receive() # GETS DATA FROM THE RADIO
 
-            if packet is not None: # IF THERE IS A PACKET 
-                recvieData = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY
-                print(recvieData)
-                writeReciveData(recvieData) # WRITES THE DATA TO THE DB
+            if packet is not None: # IF THERE IS A PACKET
+                try:
+                    recvieData = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY
+                except UnicodeDecodeError: 
+                    logging.error("There was a problem unpacking the recived data")
+                        
+                #print(recvieData)
+                #writeReciveData(recvieData) # WRITES THE DATA TO THE DB
           
                 sendData() # SENDS THE DATA IN "transmit.json"
 
@@ -263,11 +245,29 @@ def TX_RX_main(app):
         raise Exception("Error ending or reciving data (run=False)")
 
 
+    prevReciveData = {
+        "gps": {
+            "lat": 68.2075271897814,
+            "lon": 15.1544641159597},
+        "telemdata": {
+            "atmoPressure": 11.05, 
+            "temperature": 22.23}}
 
-
-
-
+    recivedData = {
+        "gps": {
+            "lat": 67.2075271897814,
+            "lon": 15.1544641159597},
+        "telemdata": {
+            "atmoPressure": 11.05, 
+            "temperature": 22.23}}
+    
 """
+
+
+
+
+
+
 
 
 

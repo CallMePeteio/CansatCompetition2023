@@ -3,11 +3,17 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 
+from .models import Flightmaster
+from datetime import datetime
+
+from . import pathToDB, selectFromDB
 from . import readJson, writeJson
 from . import pathToTransmitJson
 from . import logging
+from . import db
 
 
+import sqlite3
 import json
 
 home = Blueprint('home', __name__)
@@ -50,8 +56,8 @@ btnDict = {
 #______________________________________ Basic BTN Handeling ______________________________________
 	"basicOn": {"htmlIdentifier": ["basic", "turnOnCansat"], "jsonWritePathData": ["basic", "isOn", 1]},
 	"basicOff": {"htmlIdentifier": ["basic", "turnOffCansat"], "jsonWritePathData": ["basic", "isOn", 0]},
-	"basicPrime": {"htmlIdentifier": ["basic", "primeCansat"], "jsonWritePathData": ["basic", "prime", 1]},
-	"basicReset": {"htmlIdentifier": ["basic", "resetCansat"], "jsonWritePathData": ["basic", "reset", 1]},
+	"basicSatrtFlight": {"htmlIdentifier": ["basic", "startFlight"], "jsonWritePathData": ["basic", "runFlight", 1]},
+	"basicStopFlight": {"htmlIdentifier": ["basic", "stopFlight"], "jsonWritePathData": ["basic", "runFlight", 0]},
 
 #______________________________________ Misc BTN Handeling _______________________________________
 	"miscBeeper": {"htmlIdentifier": ["misc", "beeper"], "jsonWritePathData": ["miscFunctions", "beeper", 1]},
@@ -82,8 +88,7 @@ def renderHome():
 
     if request.method == "POST": # IF THERE IS A POST REQUEST
 
-#_________________________________________  BTN Handeling ________________________________________
-
+#---------------- BTN HANDELING
         for keys, value in btnDict.items(): # LOOPS OVER ALL OF THE ITEMS IN THE BTN DICT
             id = value["htmlIdentifier"] # FINDS THE HTML IDENTYFIER
             data = value["jsonWritePathData"] # FINDS THE DATA PATH AND THE VALUE YOU WANT TO CHANGE TO
@@ -93,7 +98,38 @@ def renderHome():
                 writeJson([data[0], data[1]], data[2], pathToTransmitJson) # SETS THE "isOn" KEY IN THE JSON FILE TO 1
 
 
+
+#---------------- ADDS A NEW FLIGHT IF THE USER CLICKED THE BUTTON
+        startFlight = btnDict["basicSatrtFlight"]["htmlIdentifier"]
+        if request.form.get(startFlight[0]) == startFlight[1]:
+            
+            now = datetime.now() # GETS THE CURRENT TIME
+            currentTime = now.strftime("%Y-%m-%d %H:%M:%S") # CHANGES THE TIME FORMAT TO THE CORRECT FORMAT
+            flightMake = Flightmaster(loginId=current_user.id,  startTime=currentTime) # MAKES A NEW FLIGT
+            db.session.add(flightMake) # ADDS THE TABLE TO THE SESSION
+            db.session.commit() # COMMITS THE SESSION
     
+
+
+#---------------- SETS THE ENDTIME COLUMN IN THE FLIGHTMASTER TABLE (IF THE USER STOPS THE FLIGHT)
+        startFlight = btnDict["basicStopFlight"]["htmlIdentifier"]
+        if request.form.get(startFlight[0]) == startFlight[1]:
+
+            con = sqlite3.connect(pathToDB) # CONNECTS TO THE DB
+            cursor = con.cursor() # MAKES THE CURSOR, FOR SELECTING THE DATA
+
+            flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], [current_user.id]) # SELECS ALL OF THE DATA FROM FLIGHTMASTER WHERE LOGINID IS CURRENT USER.ID
+            latestFlightID = flightData[len(flightData) -1][0] # GETS THE LATEST FLIGHT ID
+
+            now = datetime.now() # GETS THE CURRENT TIME
+            currentTime = now.strftime("%Y-%m-%d %H:%M:%S") # CHANGES THE TIME FORMAT TO THE CORRECT FORMAT
+
+            cursor.execute("UPDATE 'flightmaster' SET endTime=? WHERE id=?", (currentTime, latestFlightID,))
+            con.commit()
+
+
+            
+            
 
     if request.method == "GET": 
         pass
