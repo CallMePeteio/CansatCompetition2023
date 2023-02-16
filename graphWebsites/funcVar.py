@@ -14,11 +14,13 @@ pathToReciveJson = "/home/pi/Desktop/CansatCompetition2023/instance/recive.json"
 pathToTransmitJson = "/home/pi/Desktop/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
 
 graphUpdateInterval = 1000 # DEFINES HOW MANY TIMES A MILISECOND THE GRAPHS SHOULD UPDATE (ms)
-grafHostDict = {"temperature": ["0.0.0.0", "5200"], "pressure": ["0.0.0.0", "5100"], "gpsMap": ["0.0.0.0", "5500"]} # THIS KEEPS TRACK OF THE PORT AND IP ADRESS OF THE 
+grafHostDict = {"temperature": ["0.0.0.0", "5200"], "tempPressure": ["0.0.0.0", "5100"], "humidity": ["0.0.0.0", "5300"], "gpsMap": ["0.0.0.0", "5500"]} # THIS KEEPS TRACK OF THE PORT AND IP ADRESS OF THE 
 
 currentIp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 currentIp.connect(("8.8.8.8", 80))
 currentIp = currentIp.getsockname()[0]
+
+telemdataColumnsDB = ["id", "flightId", "time", "atmoTemp", "temperature", "humidity", "accelX", "accelY", "accelZ", "flightTime"] # KEEPS TRACK OF THE COLUMNS IN THE TELEMETRY TABLE
 
 
 """

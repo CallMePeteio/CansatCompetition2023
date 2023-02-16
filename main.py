@@ -16,8 +16,9 @@ import os
 app, TX_RX_main = create_app() # GETS THE APP OBJ
 
 tempFunc = lambda : subprocess.call(" python graphWebsites/temperature.py 1", shell=True)
-pressureFunc = lambda : subprocess.call(" python graphWebsites/pressure.py 1", shell=True)
+tempPressure = lambda : subprocess.call(" python graphWebsites/tempPressure.py 1", shell=True)
 gpsMapFunc = lambda : subprocess.call(" python graphWebsites/gpsMap_.py 1", shell=True)
+humidityFunc = lambda : subprocess.call(" python graphWebsites/humidity.py 1", shell=True)
 
 if __name__ == "__main__": 
 
@@ -28,10 +29,14 @@ if __name__ == "__main__":
     print(f"\n -------------- Started The Temperature Graph! ---------------")
 
 # -- STARTS & MAKES THE PRESSURE THREAD
-    pressureThread = threading.Thread(target=pressureFunc)
-    pressureThread.start()
+    tempPressureThread = threading.Thread(target=tempPressure)
+    tempPressureThread.start()
     print(f"\n ---------------- Started The Pressure Graph! ----------------")
-    
+
+# -- STARTS & MAKES THE HUMIDITY THREAD
+    humidityThread = threading.Thread(target=humidityFunc)
+    humidityThread.start()
+    print(f"\n ------------------------ Started Humidity Graph! -------------------------")
 
 # -- STARTS & MAKES THE GPS THREAD
     gpsThread = threading.Thread(target=gpsMapFunc)

@@ -39,7 +39,12 @@ def gps():
 
     gpsUrl = "http://" + currentIp
 
+
+    
     isOn = readJson(["basic", "isOn"], pathToTransmitJson, intToBool=True)
+    if isOn == True:
+        isOn = readJson(["basic", "runFlight"], pathToTransmitJson, intToBool=True)
+        
     return render_template('gps.html', user=current_user, online=isOn, gpsUrl=gpsUrl) # RETURNS THE HTML
 
 
@@ -54,4 +59,9 @@ def telemData():
     graphUrl = "http://" + currentIp
 
     isOn = readJson(["basic", "isOn"], pathToTransmitJson, intToBool=True)
+
+    if isOn == True:
+        isOn = readJson(["basic", "runFlight"], pathToTransmitJson, intToBool=True)
+        
+
     return render_template("/telemData.html", graphUrl=graphUrl, user=current_user,online=isOn)

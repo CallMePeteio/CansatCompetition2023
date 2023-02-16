@@ -42,26 +42,28 @@ seperator = This is the seperator you want to have between the data
 
 """
 
-emptyDict = {"temprature": None, "tempPressure": None, "humidity": None, "acceleration": {"x": None, "y": None, "z": None}}
+emptyDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "tempPressure": None, "humidity": None}, "acceleration": {"x": None, "y": None, "z": None}}
 
 def uncompressData(dictValues, emptyDict, seperator=","):
     dictValues = dictValues.split(seperator)
-    emptyDict = {"temprature": None, "tempPressure": None, "humidity": None, "acceleration": {"x": None, "y": None, "z": None}}
+    emptyDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "tempPressure": None, "humidity": None}, "acceleration": {"x": None, "y": None, "z": None}}
     emptyDict_ = emptyDict # SO THE SCIPT DOSENT OVERWRITE THE EMPTY DICTIONARY
 
 
-    if len(dictValues) == len(emptyDict_) or True: # IF THE INPUT DATA IS VALID LENGTH
-        for i, key in enumerate(emptyDict_.keys()): # LOOPS OVER ALL OF THE KEYS IN THE DICTIONARY, THE "i" VARIABLE KEEPS TRACK OVER WHAT VALUE OF THE LSIT WE ARE ON
-            if emptyDict_[key] != None: # IF THERE IS A NESTED DICTIONARY, FOR EXAMPLE "acceleration": {"x": None, "y": None, "z": None}"
+    i=0 # KEEPS TRACK OF THE INDEX THAT WE ARE ON
+    try:
+        for key in emptyDict_.keys(): # LOOPS OVER ALL OF THE KEYS IN THE DICTIONARY, THE "i" VARIABLE KEEPS TRACK OVER WHAT VALUE OF THE LSIT WE ARE ON
+
+            if isinstance(emptyDict_[key], dict): # IF THERE IS A NESTED DICTIONARY, FOR EXAMPLE "acceleration": {"x": None, "y": None, "z": None}"
                 for nestedKey in emptyDict_[key].keys(): # LOOPS OVER ALL OF THE KEYS IN THE PARENT KEY
                     emptyDict_[key][nestedKey] = dictValues[i] # SETS THAT VALUE TO THE VALUE IN THE LIST
                     i+=1 # ADDS ONE TO I, TO KEEP THE ORDER RIGHT ACCORDING TO THE "dictValues" LIST
             else: 
                 emptyDict_[key] = dictValues[i] # SET THAT KEY TO THE CURRENT VALUE OF THE DICT VALUE
-        return emptyDict_
-    else: 
-        raise Exception("The empty dict and the dictvalues is not the same lenght, plase check the input data")
-
+                i+=1 # ADDS ONE TO I, TO KEEP THE ORDER RIGHT ACCORDING TO THE "dictValues" LIST
+        return emptyDict_ # RETURNS THE UNCOMPTESSED DTAA
+    except IndexError:
+        logging.critical(f"There was an error ucompessing the data recived \n dictValues: {dictValues} \n emptyDict: {emptyDict_}")
 
 """
 _________________________________________ compressData __________________________________________
@@ -120,7 +122,7 @@ def writeReciveData(recivedData):
 
 # -- WRITES THE DATA RECIVED TO THE DB
     gpsData = GPSdata(flightId=latestFlightID, lat=recivedData["gps"]["lat"], lon=recivedData["gps"]["lon"])
-    telemData = Telemdata(flightId=latestFlightID, atmoPressure=recivedData["telemdata"]["atmoPressure"], temperature=recivedData["telemdata"]["temperature"], flightTime=estimatedFlightTime)
+    telemData = Telemdata(flightId=latestFlightID, atmoTemp=recivedData["telemData"]["tempPressure"], temperature=recivedData["telemData"]["temprature"], humidity=recivedData["telemData"]["humidity"], accelX=recivedData["acceleration"]["x"], accelY=recivedData["acceleration"]["y"], accelZ=recivedData["acceleration"]["z"], flightTime=estimatedFlightTime)
 
     db.session.add(gpsData)
     db.session.add(telemData)
@@ -128,8 +130,8 @@ def writeReciveData(recivedData):
 
 
 # -- WRITES THE GATHERED DATA TO THE RECIVE.JSON FILE (NOT USED)
-    #with open(pathToReciveJson, "w") as file: # OPENS THE FILE IN WRITE MODE 
-    #    json.dump(recivedData, file) # DUMPS THE JSON TO THE JSON
+    with open(pathToReciveJson, "w") as file: # OPENS THE FILE IN WRITE MODE 
+        json.dump(recivedData, file) # DUMPS THE JSON TO THE JSON
 
 
     return recivedData # RETURNS TRUE TO NOT STOP READING AND WRITING
@@ -144,17 +146,22 @@ def elapsedTime(startTimeFloat):
 def TX_RX_main(app): 
     with app.app_context(): # TO GET FULL PERMISSIONS TO READ AND WRITE TO DB
         while True: 
-            packet = radio.receive() # GETS DATA FROM THE RADIO
 
-            if packet is not None: # IF THERE IS A PACKET
-                try:
-                    recvieData = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY
-                except UnicodeDecodeError: 
-                    logging.error("There was a problem unpacking the recived data")
-                        
-                #print(recvieData)
-                #writeReciveData(recvieData) # WRITES THE DATA TO THE DB
-          
+            hasStartedFlight = readJson(["basic", "runFlight"], pathToTransmitJson, intToBool=True, log=False)
+
+            if hasStartedFlight == True:
+                packet = radio.receive() # GETS DATA FROM THE RADIO
+                if packet is not None: # IF THERE IS A PACKET
+
+                    try:
+                        recvieData = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY
+                    except UnicodeDecodeError: 
+                        logging.error("There was a problem unpacking the recived data")
+
+                    writeReciveData(recvieData) # WRITES THE DATA TO THE DB
+
+                    sendData() # SENDS THE DATA IN "transmit.json"
+            else: 
                 sendData() # SENDS THE DATA IN "transmit.json"
 
 

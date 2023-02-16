@@ -15,7 +15,7 @@ import socket
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 
-temperatureGraph = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+humidityGraph = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 def _create_fig():
 
@@ -25,10 +25,10 @@ def _create_fig():
 
     df = pd.DataFrame(flightData, columns=telemdataColumnsDB) # WRAPS THE DATA IN A PANDAS DATAFRAME
 
-    return [df["flightTime"], df["temperature"]] # RETURNS THE DATAFRAME, WITH THE DATA FLIGHTTIME AND TEMPERATURE IN A LIST
+    return [df["flightTime"], df["humidity"]] # RETURNS THE DATAFRAME, WITH THE DATA FLIGHTTIME AND TEMPERATURE IN A LIST
 
 
-temperatureGraph.layout = html.Div(
+humidityGraph.layout = html.Div(
     html.Div([
         dcc.Graph(id='live-update-graph', figure = dict(
                 data=[{'x': _create_fig()[0], # ADDS THE ALREADY ADDED DATA IF ANY
@@ -47,7 +47,7 @@ temperatureGraph.layout = html.Div(
 )
 
 
-@temperatureGraph.callback(Output('live-update-graph', 'extendData'),
+@humidityGraph.callback(Output('live-update-graph', 'extendData'),
               Input('interval-component', 'n_intervals'),
               [State('live-update-graph', 'figure')])
 def update_graph_live(n, existing):
@@ -60,18 +60,18 @@ def update_graph_live(n, existing):
 
     flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], [1]) # SELECTS ALL OF THE FLIGHT DATA WITH THE LOGINID OF 1
     latestFlightID = flightData[len(flightData) -1][0] # FINDS THE LATEST FLIGHTID
-    flightData = selectFromDB(pathToDB, "telemdata", ["WHERE"], ["flightId"], [latestFlightID]) # SELECTS THE LATEST FLIGHT
+    flightData = selectFromDB(pathToDB, "telemData", ["WHERE"], ["flightId"], [latestFlightID]) # SELECTS THE LATEST FLIGHT
 
     latestTime = flightData[len(flightData) -1][len(telemdataColumnsDB) -1] # FINDS THE LATEST TIME DATA
-    latestTemp = flightData[len(flightData) -1][4] # FINDS THE LATEST TEMP DATA
+    latestTemp = flightData[len(flightData) -1][5] # FINDS THE LATEST TEMP DATA
 
     return dict(x=[[latestTime]], y=[[latestTemp]]) # RETURNS THE NEW DATA, IF THE DATA IS NOT EQUAL TO THE PAST DATA, THEN THE GRAF WILL NOT UPDATE
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    hostingDetails = grafHostDict["temperature"]
+    hostingDetails = grafHostDict["humidity"]
 
     isRunning = s.connect_ex((currentIp, int(hostingDetails[1]))) == 0
     if isRunning == False: 
-        target=temperatureGraph.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug)# RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
+        target=humidityGraph.run_server(host=hostingDetails[0], port=hostingDetails[1], debug=debug)# RUNS THE WEBSITE ON A SEPERATE THREAD (STARTS HOSTING)
 

@@ -43,8 +43,14 @@ class Telemdata(db.Model):
     flightId = db.Column(db.Integer, db.ForeignKey("flightmaster.id"))
     time = db.Column(db.DateTime(timezone=True), default=func.now())
 
-    atmoPressure = db.Column(db.Float(150))
-    temperature = db.Column(db.Float(150))
+
+    atmoTemp = db.Column(db.Float(60))
+    temperature = db.Column(db.Float(60))
+    humidity = db.Column(db.Float(60))
+    accelX = db.Column(db.Float(60))
+    accelY = db.Column(db.Float(60))
+    accelZ = db.Column(db.Float(60))
+
     flightTime = db.Column(db.Float(150))
 
 

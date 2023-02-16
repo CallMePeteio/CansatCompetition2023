@@ -1,1 +1,1 @@
-{"gps": {"lat": 67.2075271897814, "lon": 15.1544641159597}, "telemdata": {"atmoPressure": 11.05, "temperature": 22.23}}
+{"gps": {"lat": "67.28595", "lon": "14.586386"}, "telemData": {"temprature": "36.4", "tempPressure": "36.5", "humidity": "21.4"}, "acceleration": {"x": "-0.09626590460538864", "y": "0.06385444849729538", "z": "0.9652832746505737"}}

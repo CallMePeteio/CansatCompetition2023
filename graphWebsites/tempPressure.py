@@ -4,7 +4,7 @@ import plotly
 import plotly.graph_objects as go
 import numpy as np 
 
-from funcVar import pathToDB, grafHostDict, selectFromDB, debug, graphUpdateInterval, currentIp
+from funcVar import pathToDB, grafHostDict, selectFromDB, debug, graphUpdateInterval, currentIp, telemdataColumnsDB
 
 
 import pandas as pd 
@@ -23,11 +23,9 @@ def _create_fig():
     latestFlightID = flightData[len(flightData) -1][0] # FINDS THE LATEST FLIGHTID
     flightData = selectFromDB(pathToDB, "telemdata", ["WHERE"], ["flightId"], [latestFlightID]) # SELECTS THE LATEST FLIGHT
 
-    df = pd.DataFrame(flightData, columns=["id", "flightId", "time", "atmoPressure", "temperature", "flightTime"]) # WRAPS THE DATA IN A PANDAS DATAFRAME
+    df = pd.DataFrame(flightData, columns=telemdataColumnsDB) # WRAPS THE DATA IN A PANDAS DATAFRAME
 
-
-
-    return [df["flightTime"], df["temperature"]] # RETURNS THE DATAFRAME, WITH THE DATA FLIGHTTIME AND TEMPERATURE IN A LIST
+    return [df["flightTime"], df["atmoTemp"]] # RETURNS THE DATAFRAME, WITH THE DATA FLIGHTTIME AND TEMPERATURE IN A LIST
 
 
 pressureGraph.layout = html.Div(
@@ -64,8 +62,8 @@ def update_graph_live(n, existing):
     latestFlightID = flightData[len(flightData) -1][0] # FINDS THE LATEST FLIGHTID
     flightData = selectFromDB(pathToDB, "telemdata", ["WHERE"], ["flightId"], [latestFlightID]) # SELECTS THE LATEST FLIGHT
 
-    latestTime = flightData[len(flightData) -1][5] # FINDS THE LATEST TIME DATA
-    latestTemp = flightData[len(flightData) -1][4] # FINDS THE LATEST TEMP DATA
+    latestTime = flightData[len(flightData) -1][len(telemdataColumnsDB) -1] # FINDS THE LATEST TIME DATA
+    latestTemp = flightData[len(flightData) -1][3] # FINDS THE LATEST TEMP DATA
 
     latestTime = round(latestTime, 3) # ROUNDS OFF THE LATEST TIME
     return dict(x=[[latestTime]], y=[[latestTemp]]) # RETURNS THE NEW DATA, IF THE DATA IS NOT EQUAL TO THE PAST DATA, THEN THE GRAF WILL NOT UPDATE
@@ -73,7 +71,7 @@ def update_graph_live(n, existing):
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    hostingDetails = grafHostDict["pressure"]
+    hostingDetails = grafHostDict["tempPressure"]
 
     isRunning = s.connect_ex((currentIp, int(hostingDetails[1]))) == 0
     if isRunning == False: 

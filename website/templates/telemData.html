@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <h5 class="display-4 spacer" style="text-align: center;">Pressure</h5>
+    <h5 class="display-4 spacer" style="text-align: center;">Atmospheric Temperature</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
             {% set pressureIpAdress = graphUrl + ":5100" %}
@@ -39,7 +39,8 @@
     <h5 class="display-4 spacer" style="text-align: center;">Humidity</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
-            <iframe src="" frameborder="0"></iframe>
+            {% set humidityIpAdress = graphUrl + ":5300" %}
+            <iframe src="{{humidityIpAdress}}" style="width: 100vh; height: 100%;"></iframe>
         </div>
     </div>
 

@@ -46,7 +46,7 @@ currentIp = currentIp.getsockname()[0]
 CS = DigitalInOut(board.CE1)
 RESET = DigitalInOut(board.D25)
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-radio = adafruit_rfm9x.RFM9x(spi, CS, RESET, 433.0) # baudrate=10000000
+radio = adafruit_rfm9x.RFM9x(spi, CS, RESET, 433.0, baudrate=10000000) # baudrate=10000000
 
 
 
