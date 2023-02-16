@@ -3,7 +3,7 @@
 
 import threading
 import time 
-import cv2 
+#import cv2 
 import os
 
 """
@@ -38,7 +38,7 @@ class Camera:
         self.scaleXY = imgScaleXY
         self.flip = imgFlip
 
-        self.camera = cv2.VideoCapture(self.videoCaptureIndex) # OPENS UP THE CAMERA
+        #self.camera = cv2.VideoCapture(self.videoCaptureIndex) # OPENS UP THE CAMERA
 
 #               cameraStart
 #This function makes the camera object, you dont need to call if you just make the object because it is called in the __int__ funciton.
@@ -46,7 +46,8 @@ class Camera:
   
 
     def cameraStart(self): 
-        self.camera = cv2.VideoCapture(self.videoCaptureIndex)
+        #self.camera = cv2.VideoCapture(self.videoCaptureIndex)
+        pass
 		
 
 #            takePhoto
@@ -55,13 +56,13 @@ class Camera:
 #imgName = This is the name of the image you want to make, if there is a image with the same name then it will be overitten. NOTE REMEMBER TO ADD THE FILE NAME. example "image.jpg"     (str)      
     def takePhoto(self, imgName):
 	
-        success, img = self.camera.read() # READS THE IMAGE FROM THE CAMERA
+        #success, img = self.camera.read() # READS THE IMAGE FROM THE CAMERA
     
-        img = cv2.flip(img, self.flip) # FLIPS THE IMAGE
-        img = cv2.resize(img, None, fx=self.scaleXY[0], fy=self.scaleXY[1], interpolation=cv2.INTER_LINEAR) # RESIZES THE IMAGE
+        #img = cv2.flip(img, self.flip) # FLIPS THE IMAGE
+        #img = cv2.resize(img, None, fx=self.scaleXY[0], fy=self.scaleXY[1], interpolation=cv2.INTER_LINEAR) # RESIZES THE IMAGE
 
-        cv2.imwrite(self.imgPath + imgName, img) # SAVES THE IMAGE
-
+        #cv2.imwrite(self.imgPath + imgName, img) # SAVES THE IMAGE
+        pass
 
 
 #            takeVideo
@@ -72,7 +73,7 @@ class Camera:
   
     def takeVideo(self, videoName, showVideo=False):
 
-        video = cv2.VideoWriter(self.videoPath + videoName, cv2.VideoWriter_fourcc(*'MJPG'), self.fps, self.videoRes) # STARTS THE VIDEO OBJECT
+        #video = cv2.VideoWriter(self.videoPath + videoName, cv2.VideoWriter_fourcc(*'MJPG'), self.fps, self.videoRes) # STARTS THE VIDEO OBJECT
 
         self.camera.set(3, self.videoRes[0]) # SETS THE RES OF THE VIDEO
         self.camera.set(4, self.videoRes[1]) # SETS THE RES OF THE VIDEO
@@ -81,10 +82,11 @@ class Camera:
             sucsess, img = self.camera.read() # READS THE PICTURE OF THE CAMERA
     
             if showVideo == True: # IF THE VIDEO SHULD BE SHOWN LIVE ON DESKOP
-                cv2.imshow("image", img) # SHOWS THE IMAGE ON DESKTOP
+                #cv2.imshow("image", img) # SHOWS THE IMAGE ON DESKTOP
+                pass
 
 
-            video.write(img) # WRITES THE IMAGE TO THE VIDEO OBJECT
+            #video.write(img) # WRITES THE IMAGE TO THE VIDEO OBJECT
 
         self.record = True # RESETS THE RECORD VARIABLE, SO THE ONLY THING YOU NEED TO DO TO START ANOTHER VIDEO IS TO CALL THE FUNCTION
        
@@ -95,7 +97,7 @@ class Camera:
 
     def cameraStop(self):
         self.camera.release() # RELEASES THE CAMERA OBJECT
-        cv2.destroyAllWindows() # CLOSES ALL OF THE WINDOWS OPENCV OPENED (IF)
+        #cv2.destroyAllWindows() # CLOSES ALL OF THE WINDOWS OPENCV OPENED (IF)
 
 
 

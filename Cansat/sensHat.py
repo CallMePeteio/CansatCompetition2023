@@ -1,8 +1,11 @@
 
 
-from . import pathToTransmitJson, pathToReciveJson, TX_RX_sleep, logging
+from . import pathToTransmitJson, pathToReciveJson, TX_RX_sleep, logging, writeJson, loggingLevel, pathToBackEndJson
+
+
 
 from sense_hat import SenseHat
+from .gpsModule import Gps
 import time
 import json
 
@@ -61,21 +64,48 @@ def getSensorData(decimalPoint=1):
         #accel = sense.get_accelerometer() # THIS IS THE ACCELERATION DATA
         accel = sense.get_accelerometer_raw() # THIS THIS IS THE
 
-        return {"temprature": temp, "tempPressure": tempPressure, "humidity": humidity, "acceleration": accel} # RETURNS THE DATA IN A DICT
-
+        #return {"temprature": temp, "tempPressure": tempPressure, "humidity": humidity, "acceleration": accel} # RETURNS THE DATA IN A DICT
+        return [temp, tempPressure, humidity, accel["x"], accel["y"], accel["z"]]
 
 
 
 
 def writeSensorData(): 
 
+        gps_ = Gps(TX_RX_sleep)
+        
+        dataDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "tempPressure": None, "humidity": None}, "acceleration": {"x": None, "y": None, "z": None}}
+
         while True: 
                 startTime = time.time() # GETS THE CURRENT TIME
                 data = getSensorData() # GETS THE SENSOR DATA
 
+                #print("\n Started writing data")
+
+
+                for i in range(int((TX_RX_sleep * 15))):
+                    gps_.gps.update()
+                    if gps_.gps.has_fix == True:
+                        gpsPos = gps_.getGpsPos() # GETS THE GPS POSITION (list)
+
+                    else: 
+                        time.sleep(TX_RX_sleep/10)
+                        gpsPos  = ((0.0000, 0.0000))
+                        logging.debug(f"         Sattelite fix tries: {i}")
+
+
+
                 with open(pathToTransmitJson, "w") as outFile: # OPENS THE TRANSMIT FILE
-                        jsonData = json.dump(data, outFile) # OWERWRITES THE DATA IN THE JSON FILE
- 
+                        sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
+
+                        dataDict = {"gps": {"lat": gpsPos[0][0], "lon": gpsPos[0][1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2]}, "acceleration": {"x": sensorData[3], "y": sensorData[4], "z": sensorData[5]}}
+                        jsonData = json.dump(dataDict, outFile) # OWERWRITES THE DATA IN THE JSON FILE, WITH THE NEW DATA GETHERED
+
+             
+
+                if loggingLevel >= 10: 
+                        writeJson(["connectedSat"], gpsPos[2], pathToBackEndJson, log=False)
+                       
 
  
                 elapsedTime = time.time() - startTime # CALCULATES THE ELAPSED TIME SINCE WE STARTED

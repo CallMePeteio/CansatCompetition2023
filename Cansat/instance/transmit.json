@@ -1,1 +1,1 @@
-{"temprature": 39.0, "tempPressure": 38.8, "humidity": 24.9, "acceleration": {"x": 0.12098050862550735, "y": 0.04054636135697365, "z": 0.9652832746505737}}
+{"gps": {"lat": 67.285956, "lon": 14.586461}, "telemData": {"temprature": 36.4, "tempPressure": 36.5, "humidity": 20.9}, "acceleration": {"x": -0.09577222913503647, "y": 0.06409724056720734, "z": 0.9669890999794006}}
