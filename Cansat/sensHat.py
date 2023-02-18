@@ -70,41 +70,27 @@ def getSensorData(decimalPoint=1):
 
 
 
-def writeSensorData(): 
+def writeSensorData(gpsData): 
 
-        gps_ = Gps(TX_RX_sleep)
-        
         dataDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "tempPressure": None, "humidity": None}, "acceleration": {"x": None, "y": None, "z": None}}
 
         while True: 
                 startTime = time.time() # GETS THE CURRENT TIME
                 data = getSensorData() # GETS THE SENSOR DATA
 
-                #print("\n Started writing data")
 
-
-                for i in range(int((TX_RX_sleep * 15))):
-                    gps_.gps.update()
-                    if gps_.gps.has_fix == True:
-                        gpsPos = gps_.getGpsPos() # GETS THE GPS POSITION (list)
-
-                    else: 
-                        time.sleep(TX_RX_sleep/10)
-                        gpsPos  = ((0.0000, 0.0000))
-                        logging.debug(f"         Sattelite fix tries: {i}")
-
-
-
+                
                 with open(pathToTransmitJson, "w") as outFile: # OPENS THE TRANSMIT FILE
                         sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
-
-                        dataDict = {"gps": {"lat": gpsPos[0][0], "lon": gpsPos[0][1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2]}, "acceleration": {"x": sensorData[3], "y": sensorData[4], "z": sensorData[5]}}
+                        dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2]}, "acceleration": {"x": sensorData[3], "y": sensorData[4], "z": sensorData[5]}}
                         jsonData = json.dump(dataDict, outFile) # OWERWRITES THE DATA IN THE JSON FILE, WITH THE NEW DATA GETHERED
 
              
 
                 if loggingLevel >= 10: 
-                        writeJson(["connectedSat"], gpsPos[2], pathToBackEndJson, log=False)
+                        writeJson(["connectedSat"], gpsData[3], pathToBackEndJson, log=False)
+
+                print(gpsData)
                        
 
  
@@ -113,6 +99,9 @@ def writeSensorData():
                         time.sleep(TX_RX_sleep - elapsedTime) # SLEEPS THE PERFECT AMOUNT OF TIME
                 else: 
                         logging.critical(f"      IMPORTANT The write sensor script used to mutch time, time constraint: {TX_RX_sleep}. Used time: {elapsedTime} IMPORTANT")
+
+
+
 
 
 

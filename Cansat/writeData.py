@@ -142,7 +142,7 @@ def elapsedTime(startTimeFloat):
     return time.time() - startTimeFloat 
 
 
-def TX_RX_main():
+def TX_RX_main(gpsData):
     run, totalTime, totalRXpackets, i = True, 0, 0, 0
 
     time.sleep((TX_RX_sleep * 5) + TX_RX_sleep/2) # SLEEPS HALF THE TIME + 5 TIMES THE TOTAL TIME, SO THE "sensHat.py" SCRIPT CAN WRITE FETCH DATA TO THE "transmit.json" FILE, AND THE GPS MODULE CAN INITIALIZE
@@ -176,7 +176,7 @@ def TX_RX_main():
             if str(i)[len(str(i)) -1] == "8": # IF I ENDS WITH "8" (EVRY 10TH TIME)
                 logging.debug(f"     Avrage Transmit and recive time: {round(totalTime/i, 4)}") # LOG OUT THE AVG TIME
                 logging.debug(f"     Avrage packet recive rate (%): {round((totalRXpackets/i)*100, 2)}") 
-                logging.debug(f"     Number of sattelites connected: {sattelitesConnected}")
+                logging.debug(f"     Number of sattelites connected: {gpsData[3]}")
                 print()
 
 

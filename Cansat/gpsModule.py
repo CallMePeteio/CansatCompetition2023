@@ -4,6 +4,8 @@
 
 
 
+from . import TX_RX_sleep
+from . import logging
 
 import serial
 import time
@@ -22,10 +24,6 @@ import random
 import adafruit_gps
 
 import serial
-
-
-
-
 
 
 
@@ -54,7 +52,8 @@ class Gps():
         time = f"{self.gps.timestamp_utc.tm_year}-{self.gps.timestamp_utc.tm_mday}-{self.gps.timestamp_utc.tm_mon} {self.gps.timestamp_utc.tm_hour}:{self.gps.timestamp_utc.tm_min}:{self.gps.timestamp_utc.tm_sec}"
         lat, lon = self.gps.latitude, self.gps.longitude
 
-        self.dataList.append((lat, lon))
+        self.dataList.append(lat)
+        self.dataList.append(lon)
         self.dataList.append(time)
 
         if self.gps.satellites is not None:
@@ -77,8 +76,66 @@ class Gps():
             horizontalDilution = self.gps.horizontal_dilution
             self.dataList.append(horizontalDilution)
   
-
         return self.dataList
+
+
+
+
+
+
+
+def elapsedTime(startTimeFloat):
+    return time.time() - startTimeFloat 
+
+
+
+
+"""
+_________________________________________ setGpsPosVar __________________________________________
+This function sets the variable "gpsData" to the data gathered in the main function "getGpsPos".
+"gpsData" Is also used in "sensHat.py" and "writeData.py", diffrent threads
+
+This is done because i cannot apparently just say "gpsData = Some list", i have to specifficly 
+index the variable to change it
+
+gpsData = The global data used in other threads
+gpsDataRaw = The data you want to set to, NOTE gpsDataRaw needs to be the same or longer length than gpsData
+"""
+def setGpsPosVar(gpsData, gpsDataRaw):
+    for i, var in enumerate(gpsDataRaw): # LOOPS OVER THE DATA GATHERED
+         gpsData[i] = var # SETS THE VARIBALE IN GPS DATA TO THE VAR INDEXED I
+
+
+
+gps_ = Gps(TX_RX_sleep)
+def getGpsPos(gpsData): 
+    i=0
+
+    while True:
+        startTime = time.time()
+
+        gps_.gps.update() # UPDATES THE GPS DATA
+        if gps_.gps.has_fix == True: # CHECKS IF THE GPS POSITION HAS FIX
+            gpsDataRaw = gps_.getGpsPos() # GETS THE GPS POSITION (list)
+            setGpsPosVar(gpsData, gpsDataRaw)
+            i=0 
+           
+        else: 
+            i+=1 # KEEPS TRACK OVER HOW MANY TIMES THE CANSAT HAS TRIED TO GET A FIX
+            logging.debug(f"         Sattelite fix tries: {i}") # PRINTS OUT HOW MANY TIMES WE HAVE TRIED TO GET A FIX
+
+
+        if elapsedTime(startTime) < TX_RX_sleep: # IF THERE IS ANY SPARE TIME LEFT
+            time.sleep(TX_RX_sleep - elapsedTime(startTime)) # SLEEP THE SPARE TIME
+
+
+
+
+
+
+
+
+
 
 
 
