@@ -123,6 +123,7 @@ def getGpsPos(gpsData):
         else: 
             i+=1 # KEEPS TRACK OVER HOW MANY TIMES THE CANSAT HAS TRIED TO GET A FIX
             logging.debug(f"         Sattelite fix tries: {i}") # PRINTS OUT HOW MANY TIMES WE HAVE TRIED TO GET A FIX
+            continue
 
 
         if elapsedTime(startTime) < TX_RX_sleep: # IF THERE IS ANY SPARE TIME LEFT

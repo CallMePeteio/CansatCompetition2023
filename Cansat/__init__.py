@@ -31,7 +31,7 @@ videoPath="/home/pi/Desktop/coding/Cansat/video/"
 imgPath="/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/img"
 videoRes, fps, imgScaleXY, imgFlip = (640, 480), 10, (1,1), -1
 
-TX_RX_sleep = 1
+TX_RX_sleep = 0.45
 
 
 CS = DigitalInOut(board.CE1) # GETS WHAT THE CS PIN IS, AND MAKES IT AS A OBJ
@@ -104,28 +104,31 @@ def writeJson(dataPath, value, jsonPath, log=True):
 
 
 def readJson(dataPath, jsonPath, intToBool=False, log=True):
-    try:
-        with open(jsonPath, "r+") as inFile: # OPENS THE FILE THAT YOU WANT TO READ
 
-            jsonData = json.load(inFile) # LOADS THE JSON
+    for i in range(int(TX_RX_sleep * 10)): # THE READ JSON SCRIPT TRIES A COUPLE OF TIMES IF THE DATA IN THE JSON FILE IS EMPTY, THIS IS BECAUSE MOST OF THE TIME THE REASON BECAUSE IT IS EMPTY IS BECAUSE THERE IS SOMEONE WRITING TO IT
+        try:
+            with open(jsonPath, "r+") as inFile: # OPENS THE FILE THAT YOU WANT TO READ
 
-            try:
-                for path in dataPath: # LOOPS OVER THE PATH IN THE DATA PATH, JSONDATA IS REWRITTEN TO MAKE THE JSON PATH DYNAMIC
-                    jsonData = jsonData[path]
-            except:
-                raise Exception(f"Wrong jsonData path entered, path: {dataPath}") # IF THERE IS AN ERROR WITH FINDING THE PATH
+                jsonData = json.load(inFile) # LOADS THE JSON
 
-            if log == True: #  CHECKS IF THE USER WANTS TO LOG THE ACTION
-                logging.info(f"     Readed variable from transmit.json (path): {dataPath}. value: {jsonData}") # LOGS THE OUTPUT
+                try:
+                    for path in dataPath: # LOOPS OVER THE PATH IN THE DATA PATH, JSONDATA IS REWRITTEN TO MAKE THE JSON PATH DYNAMIC
+                        jsonData = jsonData[path]
+                except:
+                    raise Exception(f"Wrong jsonData path entered, path: {dataPath}") # IF THERE IS AN ERROR WITH FINDING THE PATH
 
-            if intToBool == True: # IF YOU WANT TO CONVERT BOOL TO INTEGER
-                if jsonData == 0: # IF JSON DATA IS 0
-                    jsonData = False # SET THE DATA AS FALSE
-                elif jsonData == 1: # IF THE DATA IS 1
-                    jsonData = True # SET THE DATA AS TRUE
-                else: 
-                    raise Exception(f"    The data: {jsonData} cannot be converted to bolean, because the data isnt 0 or 1") # MAKES AN ERROR IF THE DATA RECIVED IS WRONG
+                if log == True: #  CHECKS IF THE USER WANTS TO LOG THE ACTION
+                    logging.info(f"     Readed variable from transmit.json (path): {dataPath}. value: {jsonData}") # LOGS THE OUTPUT
 
-            return jsonData # RETURNS THE DATA
-    except: 
-        logging.error(f"     Error reading the data: {dataPath} From {jsonPath}")
+                if intToBool == True: # IF YOU WANT TO CONVERT BOOL TO INTEGER
+                    if jsonData == 0: # IF JSON DATA IS 0
+                        jsonData = False # SET THE DATA AS FALSE
+                    elif jsonData == 1: # IF THE DATA IS 1
+                        jsonData = True # SET THE DATA AS TRUE
+                    else: 
+                        raise Exception(f"    The data: {jsonData} cannot be converted to bolean, because the data isnt 0 or 1") # MAKES AN ERROR IF THE DATA RECIVED IS WRONG
+
+                return jsonData # RETURNS THE DATA
+        except: 
+            logging.error(f"     Error reading the data: {dataPath} From {jsonPath}. Total Tries: {i}")
+            time.sleep(TX_RX_sleep/30) # SLEEPS A BIT TO LET THE OTHER SCRIPT WRITE THE DATA    

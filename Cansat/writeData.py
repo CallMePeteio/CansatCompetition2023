@@ -123,17 +123,21 @@ def reciveData():
     packet = radio.receive()
 
     if packet is not None: 
-        rxDataCompressed = str(packet, "utf-8")
-        rxData = uncompressData(rxDataCompressed, emptyDict)
-        #print(rxData)
+        
+        try: 
+            rxData = uncompressData(str(packet, "utf-8"), emptyDict)
+        except UnicodeDecodeError: 
+            logging.error("There was a problem unpacking the recived data")
+   
 
-        with open(pathToReciveJson, "w") as outFile: # OPENS THE TRANSMIT FILE
+
+        with open(pathToReciveJson, "w") as outFile: # OPENS THE RECIVE JSON FILE
             jsonData = json.dump(rxData, outFile) # OWERWRITES THE DATA IN THE JSON FILE
-            return 1
+            return 1 # RETURNS 1, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
 
     else:
         #logging.error(f"     The packet recived from the server is None!")
-        return 0
+        return 0 # RETURNS 0, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
 
 
 
@@ -172,7 +176,6 @@ def TX_RX_main(gpsData):
             i+=1 # ADDS 1 TO THE INDEX VARIABLE, THIS IS TO CALCULATE AVG TIME
             totalTime += elapsedTime(startTime) # ADDS THE ELAPSED TIME TO THE TOTALTIME VARIABLE
             totalRXpackets += rxPacket
-            sattelitesConnected = readJson(["connectedSat"], pathToBackEndJson, log=False)
             if str(i)[len(str(i)) -1] == "8": # IF I ENDS WITH "8" (EVRY 10TH TIME)
                 logging.debug(f"     Avrage Transmit and recive time: {round(totalTime/i, 4)}") # LOG OUT THE AVG TIME
                 logging.debug(f"     Avrage packet recive rate (%): {round((totalRXpackets/i)*100, 2)}") 
