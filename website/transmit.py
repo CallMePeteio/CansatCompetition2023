@@ -143,34 +143,67 @@ def writeReciveData(recivedData):
 def elapsedTime(startTimeFloat):
     return time.time() - startTimeFloat 
 
+
 def TX_RX_main(app): 
+
+    i, totalTime, prevPacket = 0, 0, "None"
+
+    totalPakcets = []
+
     with app.app_context(): # TO GET FULL PERMISSIONS TO READ AND WRITE TO DB
         while True: 
+            startTime = time.time() # GETS THE CURRENT TIME
+
 
             hasStartedFlight = readJson(["basic", "runFlight"], pathToTransmitJson, intToBool=True, log=False)
 
             if hasStartedFlight == True:
                 packet = radio.receive() # GETS DATA FROM THE RADIO
-                if packet is not None: # IF THERE IS A PACKET
+                if packet is not None and packet != prevPacket: # IF THERE IS A PACKET
+                    prevPacket = packet
 
                     try:
-                        recvieData = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY
+                        recvieData = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY               
                     except UnicodeDecodeError: 
                         logging.error("There was a problem unpacking the recived data")
 
                     writeReciveData(recvieData) # WRITES THE DATA TO THE DB
 
                     sendData() # SENDS THE DATA IN "transmit.json"
+
+                    if loggingLevel <= 10: # IF YOU WANT TO LOG OUT THE RESULT
+                        i+=1 # ADDS 1 TO THE INDEX VARIABLE, THIS IS TO CALCULATE AVG TIME
+                        totalTime += elapsedTime(startTime) # ADDS THE ELAPSED TIME TO THE TOTALTIME VARIABLE
+                        totalPakcets.append(packet)
+
+                        if str(i)[len(str(i)) -1] == "0": # IF I ENDS WITH "8" (EVRY 10TH TIME)
+                            print()
+                            logging.debug(f"     Avrage Transmit and recive time: {round(totalTime/i, 4)}") # LOG OUT THE AVG TIME
+                            #print(totalPakcets)
+                            print()
+                            #totalTime, i = 0, 0
+
             else: 
                 sendData() # SENDS THE DATA IN "transmit.json"
 
 
 
 
-
-
-
 """
+
+                    if loggingLevel <= 10: # IF YOU WANT TO LOG OUT THE RESULT
+                        i+=1 # ADDS 1 TO THE INDEX VARIABLE, THIS IS TO CALCULATE AVG TIME
+                        totalTime += elapsedTime(startTime) # ADDS THE ELAPSED TIME TO THE TOTALTIME VARIABLE
+                        totalPakcets.append(packet)
+
+                        if str(i)[len(str(i)) -1] == "0": # IF I ENDS WITH "8" (EVRY 10TH TIME)
+                            print()
+                            logging.debug(f"     Avrage Transmit and recive time: {round(totalTime/i, 4)}") # LOG OUT THE AVG TIME
+                            #print(totalPakcets)
+                            print()
+                            #totalTime, i = 0, 0
+
+
 def TX_RX_main(app): 
     with app.app_context(): # TO GET FULL PERMISSIONS TO READ AND WRITE TO DB
         totalTime, i = 0, 0
