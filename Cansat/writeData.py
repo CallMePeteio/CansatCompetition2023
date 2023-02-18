@@ -126,14 +126,16 @@ def reciveData():
         
         try: 
             rxData = uncompressData(str(packet, "utf-8"), emptyDict)
+
+            with open(pathToReciveJson, "w") as outFile: # OPENS THE RECIVE JSON FILE
+                jsonData = json.dump(rxData, outFile) # OWERWRITES THE DATA IN THE JSON FILE
+                return 1 # RETURNS 1, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
+
         except UnicodeDecodeError: 
             logging.error("There was a problem unpacking the recived data")
    
 
 
-        with open(pathToReciveJson, "w") as outFile: # OPENS THE RECIVE JSON FILE
-            jsonData = json.dump(rxData, outFile) # OWERWRITES THE DATA IN THE JSON FILE
-            return 1 # RETURNS 1, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
 
     else:
         #logging.error(f"     The packet recived from the server is None!")
