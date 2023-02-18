@@ -79,26 +79,18 @@ def writeSensorData(gpsData):
                 data = getSensorData() # GETS THE SENSOR DATA
 
 
-                
                 with open(pathToTransmitJson, "w") as outFile: # OPENS THE TRANSMIT FILE
                         sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
                         dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2]}, "acceleration": {"x": sensorData[3], "y": sensorData[4], "z": sensorData[5]}}
                         jsonData = json.dump(dataDict, outFile) # OWERWRITES THE DATA IN THE JSON FILE, WITH THE NEW DATA GETHERED
 
-             
 
-                if loggingLevel >= 10: 
-                        writeJson(["connectedSat"], gpsData[3], pathToBackEndJson, log=False)
 
-                print(gpsData)
-                       
-
- 
                 elapsedTime = time.time() - startTime # CALCULATES THE ELAPSED TIME SINCE WE STARTED
                 if elapsedTime < TX_RX_sleep: # IF THE SCRIPT HAS USED MORE TIME THAN IT SHULD
                         time.sleep(TX_RX_sleep - elapsedTime) # SLEEPS THE PERFECT AMOUNT OF TIME
                 else: 
-                        logging.critical(f"      IMPORTANT The write sensor script used to mutch time, time constraint: {TX_RX_sleep}. Used time: {elapsedTime} IMPORTANT")
+                        logging.critical(f"      The write sensor script used to mutch time, time constraint: {TX_RX_sleep}. Used time: {elapsedTime}")
 
 
 

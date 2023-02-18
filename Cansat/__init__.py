@@ -66,6 +66,7 @@ def startApp():
 """
 ___________________________________________ writeJson ___________________________________________
 
+
 This function writes json to a specified json file
 
 dataPath = This is the path insdie the JSON file that you want to change the value to. for example in a json file that looks like this: {"basic": {"isOn": 0}}. If you want to change the value to IsOn then you need to input ["basic", "isOn"]. (list)
