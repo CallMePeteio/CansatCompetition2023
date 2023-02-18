@@ -1,1 +1,1 @@
-{"basic": {"isOn": 1, "runFlight": 1}, "manualControl": {"activated": 1, "left": 1, "right": 1}, "miscFunctions": {"beeper": 1, "lights": 1, "x": 0, "y": 0, "reset": 0}, "camera": {"startVid": 1, "photo": 1, "videoLength": 0}}
+{"basic": {"isOn": 1, "runFlight": 1}, "manualControl": {"activated": 0, "left": 0, "right": 0}, "miscFunctions": {"beeper": 0, "lights": 0, "x": 0, "y": 0}, "camera": {"startVid": 0, "photo": 0, "videoLength": 0}}
