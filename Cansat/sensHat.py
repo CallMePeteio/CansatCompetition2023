@@ -1,6 +1,7 @@
 
 
-from . import pathToTransmitJson, pathToReciveJson, TX_RX_sleep, logging, writeJson, loggingLevel, pathToBackEndJson
+from . import TX_RX_sleep, logging, writeJson, loggingLevel
+from . import setGlobalVarDic
 
 
 
@@ -12,9 +13,6 @@ import json
 
 sense = SenseHat() # MAKES THE SENS HAT OBJECT
 
-
-#sense.show_message("HELLO ROBIN", text_colour=(255,0,0), back_colour=(0,255,0), scroll_speed=0.05) # DISPLAYES A MESSAGE
-#sense.clear((255,255,255)) # DISPLAYES A COLOUR ON THE RGB SCREEN
 
 
 """
@@ -70,21 +68,18 @@ def getSensorData(decimalPoint=1):
 
 
 
-def writeSensorData(gpsData): 
+def writeSensorData(gpsData, transmitData): 
 
         dataDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "tempPressure": None, "humidity": None}, "acceleration": {"x": None, "y": None, "z": None}}
 
         while True: 
                 startTime = time.time() # GETS THE CURRENT TIME
+
                 data = getSensorData() # GETS THE SENSOR DATA
+                sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
 
-
-                with open(pathToTransmitJson, "w") as outFile: # OPENS THE TRANSMIT FILE
-                        sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
-                        dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2]}, "acceleration": {"x": sensorData[3], "y": sensorData[4], "z": sensorData[5]}}
-                        jsonData = json.dump(dataDict, outFile) # OWERWRITES THE DATA IN THE JSON FILE, WITH THE NEW DATA GETHERED
-
-
+                dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2]}, "acceleration": {"x": sensorData[3], "y": sensorData[4], "z": sensorData[5]}}
+                setGlobalVarDic(dataDict, transmitData)
 
                 elapsedTime = time.time() - startTime # CALCULATES THE ELAPSED TIME SINCE WE STARTED
                 if elapsedTime < TX_RX_sleep: # IF THE SCRIPT HAS USED MORE TIME THAN IT SHULD
@@ -96,19 +91,4 @@ def writeSensorData(gpsData):
 
 
 
-
-
-
-
-
-#while True: 
-#    textList = ["PEPSI POWER"]
-#    writeText(textList=textList, textColor=(0, 71, 171), scrollSpeed=0.15)
-
-
-#while True:
-#
-#        print()
-#        print(getSensorData())
-#        time.sleep(0.1)
 

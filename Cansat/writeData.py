@@ -2,7 +2,8 @@
 
 
 
-from . import pathToReciveJson, pathToTransmitJson, TX_RX_sleep, logging, loggingLevel, radio, readJson, pathToBackEndJson
+from . import TX_RX_sleep, logging, loggingLevel, radio
+from . import setGlobalVarDic
 
 
 import sqlite3
@@ -101,42 +102,28 @@ def compressData(dictionary, seperator=","):
 
 
 
-def sendData():
+def sendData(transmitData):
 
-    for i in range(int(TX_RX_sleep * 10)):
-
-        try: 
-            with open(pathToTransmitJson, "r+") as inFile: # OPENS THE TRANSMIT FILE
-                jsonData = json.load(inFile) # LOADS THE FILE
-                compresseData = compressData(jsonData)  # COMPRESSES THE DATA
-                radio.send(bytes(compresseData, "utf-8")) # SENS THE COMPRESSED DATA DICT WITH THE rfm9x LORA RADIO
-                break
-    
-        
-        except ValueError: 
-            logging.critical(f"     The 'transmit.json' file is empty, Tried to read it but got an error")
+    compresseData = compressData(transmitData)  # COMPRESSES THE DATA
+    radio.send(bytes(compresseData, "utf-8")) # SENS THE COMPRESSED DATA DICT WITH THE rfm9x LORA RADIO
 
     return True
         
 
-def reciveData():
+def reciveDataFunc(reciveData):
     packet = radio.receive()
 
     if packet is not None: 
         
         try: 
             rxData = uncompressData(str(packet, "utf-8"), emptyDict)
+            setGlobalVarDic(rxData, reciveData) # SETS THE GLOBAL VARIABLE ("between threads") "reciveData"
 
-            with open(pathToReciveJson, "w") as outFile: # OPENS THE RECIVE JSON FILE
-                jsonData = json.dump(rxData, outFile) # OWERWRITES THE DATA IN THE JSON FILE
-                return 1 # RETURNS 1, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
+            return 1 # RETURNS 1, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
 
         except UnicodeDecodeError: 
             logging.error("There was a problem unpacking the recived data")
    
-
-
-
     else:
         #logging.error(f"     The packet recived from the server is None!")
         return 0 # RETURNS 0, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
@@ -148,24 +135,21 @@ def elapsedTime(startTimeFloat):
     return time.time() - startTimeFloat 
 
 
-def TX_RX_main(gpsData):
+def TX_RX_main(gpsData, transmitData, reciveData):
     run, totalTime, totalRXpackets, i = True, 0, 0, 0
 
     time.sleep((TX_RX_sleep * 5) + TX_RX_sleep/2) # SLEEPS HALF THE TIME + 5 TIMES THE TOTAL TIME, SO THE "sensHat.py" SCRIPT CAN WRITE FETCH DATA TO THE "transmit.json" FILE, AND THE GPS MODULE CAN INITIALIZE
 
     while True: 
         startTime = time.time() # GETS THE CURRENT TIME
-        run = sendData() # TRANSMITS THE DATA, FROM THE "transmit.json" FILE
+        run = sendData(transmitData) # TRANSMITS THE DATA, FROM THE "transmit.json" FILE
 
 
         if elapsedTime(startTime) < TX_RX_sleep * 0.48: # IF THERE IS ENOUGH TIME LEFT TO RECIVE DATA
-            rxPacket = reciveData() # RECIVES THE DATA
+            rxPacket = reciveDataFunc(reciveData) # RECIVES THE DATA
         else:
             rxPacket = 0
             logging.warning(f"     Didnt recive data to from the Server, because there wasnt enough time left to forfill the time constraint of {TX_RX_sleep}. Total elapsed time in this cycle: {elapsedTime(startTime)}")
-
-
-
 
 
 

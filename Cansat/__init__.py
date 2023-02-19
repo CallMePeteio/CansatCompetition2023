@@ -23,15 +23,11 @@ logger.setLevel(loggingLevel) # SETS THE LEVEL AS DEFINED ABOVE
 logger = formatFont(logger) # MAKES THE LOGGING FORMAT AND COLORS
 
 
-pathToBackEndJson = "/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/instance/backend.json"
-pathToReciveJson = "/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/instance/recive.json" # RECIVE JSON FULL PATH
-pathToTransmitJson = "/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/instance/transmit.json" # TRANSMIT JSON FULL PATH
-
 videoPath="/home/pi/Desktop/coding/Cansat/video/"
 imgPath="/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/img"
 videoRes, fps, imgScaleXY, imgFlip = (640, 480), 10, (1,1), -1
 
-TX_RX_sleep = 1
+TX_RX_sleep = 0.5
 
 
 CS = DigitalInOut(board.CE1) # GETS WHAT THE CS PIN IS, AND MAKES IT AS A OBJ
@@ -132,3 +128,53 @@ def readJson(dataPath, jsonPath, intToBool=False, log=True):
         except: 
             logging.error(f"     Error reading the data: {dataPath} From {jsonPath}. Total Tries: {i}")
             time.sleep(TX_RX_sleep/30) # SLEEPS A BIT TO LET THE OTHER SCRIPT WRITE THE DATA    
+
+
+
+"""
+_______________________________________ setGlobalVarDic _________________________________________
+
+setGlobalVarDic - This function sets a global variable between threads, such as "gpsData", to the data gathered in the main function "getGpsPos".
+The variable "gpsData" is also used in "sensHat.py" and "writeData.py" in different threads.
+
+This is necessary because we cannot directly assign a value to the global variable "gpsData", instead we must explicitly index the variable to change it.
+
+Parameters:
+    inputDic: The data that you want to set to the global variable. This should be a dictionary.
+    globalDic: The global variable that is used in other threads. This should be a dictionary.
+
+Returns:
+    None
+"""
+
+def setGlobalVarDic(inputDic, globalDic):
+    
+    for key in globalDic.keys(): # LOOPS OVER ALL OF THE KEYS IN "globalVar"
+
+        if isinstance(globalDic[key], dict): # IF THE KEY IS A DICT, MEANING THAT IT IS A NESTED DICTIONARY
+            for nestedKey in globalDic[key].keys(): # LOOPS OVER ALL OF THE KEYS IN THE LISTED DICTIONARY
+
+                if key in inputDic.keys(): # IF THE KEY THAT WE ARE LOOPING OVER EXISTS IN THE "inputVar" VARIABLE
+                    if nestedKey in inputDic[key].keys(): # IF THE KEY THAT WE ARE LOOPING OVER EXISTS IN THE "inputVar" VARIABLE
+                        globalDic[key][nestedKey] = inputDic[key][nestedKey] # SET THE DATA FROM "inputVar" to "globalVar"
+                    else: 
+                        break # STOPS THE FOR LOOP SO WE DONT LOOP OVER UNECCECARY ITEMS
+                else:
+                    break # STOPS THE FOR LOOP SO WE DONT LOOP OVER UNECCECARY ITEMS
+                
+        else: 
+           globalDic[key] = inputDic[key] # SET THE DATA FROM "inputVar" to "globalVar"
+
+
+"""
+_______________________________________ setGlobalVarList ________________________________________
+"""
+
+def setGlobalVarList(inputList, gloabList):
+    for i, var in enumerate(inputList): # LOOPS OVER THE DATA GATHERED
+
+        try:
+            gloabList[i] = var # SETS THE VARIBALE IN GPS DATA TO THE VAR INDEXED I
+        except IndexError: # IF THE INPUT LIST WAS SHORTER THAN THE GLOBAL LIST
+            break # STOPS THE LOOP
+

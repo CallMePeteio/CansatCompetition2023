@@ -3,10 +3,10 @@
 
 
 
-
+from . import setGlobalVarList
+from . import loggingLevel
 from . import TX_RX_sleep
 from . import logging
-
 import serial
 import time
 
@@ -32,7 +32,6 @@ class Gps():
 
     def __init__(self, refreshTime): 
 
-    #gps.send_command(b'PMTK220,1000') # Set update rate to once a second (1hz) which is what you typically want.
         
         refreshCommand = f"PMTK220,{refreshTime*1000}"
         uart = serial.Serial("/dev/ttyUSB0", baudrate=9600, timeout=3000)
@@ -90,21 +89,6 @@ def elapsedTime(startTimeFloat):
 
 
 
-"""
-_________________________________________ setGpsPosVar __________________________________________
-This function sets the variable "gpsData" to the data gathered in the main function "getGpsPos".
-"gpsData" Is also used in "sensHat.py" and "writeData.py", diffrent threads
-
-This is done because i cannot apparently just say "gpsData = Some list", i have to specifficly 
-index the variable to change it
-
-gpsData = The global data used in other threads
-gpsDataRaw = The data you want to set to, NOTE gpsDataRaw needs to be the same or longer length than gpsData
-"""
-def setGpsPosVar(gpsData, gpsDataRaw):
-    for i, var in enumerate(gpsDataRaw): # LOOPS OVER THE DATA GATHERED
-         gpsData[i] = var # SETS THE VARIBALE IN GPS DATA TO THE VAR INDEXED I
-
 
 
 gps_ = Gps(TX_RX_sleep)
@@ -117,13 +101,29 @@ def getGpsPos(gpsData):
         gps_.gps.update() # UPDATES THE GPS DATA
         if gps_.gps.has_fix == True: # CHECKS IF THE GPS POSITION HAS FIX
             gpsDataRaw = gps_.getGpsPos() # GETS THE GPS POSITION (list)
-            setGpsPosVar(gpsData, gpsDataRaw)
+            setGlobalVarList(gpsData, gpsDataRaw)
             i=0 
            
         else: 
-            i+=1 # KEEPS TRACK OVER HOW MANY TIMES THE CANSAT HAS TRIED TO GET A FIX
-            logging.debug(f"         Sattelite fix tries: {i}") # PRINTS OUT HOW MANY TIMES WE HAVE TRIED TO GET A FIX
-            continue
+
+            if loggingLevel <= 10: # IF YOU WANT TO LOG OUT THE RESULT
+                i+=1 # KEEPS TRACK OVER HOW MANY TIMES THE CANSAT HAS TRIED TO GET A FIX
+
+                if i > 300: # IF WE HAVE LOST GPS FIC
+                    if str(i)[len(str(i)) -1] == "8": # IF I ENDS WITH "8" (EVRY 10TH TIME)
+                        logging.debug(f"         Sattelite fix tries: {i}") # PRINTS OUT HOW MANY TIMES WE HAVE TRIED TO GET A FIX
+                    time.sleep(0.3) # SLEEP 0.3 SECOND TO EVOID UNECCECARY PRINTS
+                else: 
+                    logging.debug(f"         Sattelite fix tries: {i}") # PRINTS OUT HOW MANY TIMES WE HAVE TRIED TO GET A FIX
+
+
+                
+
+
+
+                continue
+            else: 
+                continue
 
 
         if elapsedTime(startTime) < TX_RX_sleep: # IF THERE IS ANY SPARE TIME LEFT
