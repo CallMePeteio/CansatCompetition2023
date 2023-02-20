@@ -102,8 +102,6 @@ def getGpsPos(gpsData):
         if gps_.gps.has_fix == True: # CHECKS IF THE GPS POSITION HAS FIX
             gpsDataRaw = gps_.getGpsPos() # GETS THE GPS POSITION (list)
             setGlobalVarList(gpsDataRaw, gpsData)
-            print(gps_.getGpsPos())
-            print(gpsData)
             i=0 
            
         else: 
