@@ -101,7 +101,9 @@ def getGpsPos(gpsData):
         gps_.gps.update() # UPDATES THE GPS DATA
         if gps_.gps.has_fix == True: # CHECKS IF THE GPS POSITION HAS FIX
             gpsDataRaw = gps_.getGpsPos() # GETS THE GPS POSITION (list)
-            setGlobalVarList(gpsData, gpsDataRaw)
+            setGlobalVarList(gpsDataRaw, gpsData)
+            print(gps_.getGpsPos())
+            print(gpsData)
             i=0 
            
         else: 
@@ -115,12 +117,6 @@ def getGpsPos(gpsData):
                     time.sleep(0.3) # SLEEP 0.3 SECOND TO EVOID UNECCECARY PRINTS
                 else: 
                     logging.debug(f"         Sattelite fix tries: {i}") # PRINTS OUT HOW MANY TIMES WE HAVE TRIED TO GET A FIX
-
-
-                
-
-
-
                 continue
             else: 
                 continue
