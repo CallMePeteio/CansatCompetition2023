@@ -52,18 +52,27 @@ decimalPoint = This is how mutch the function will round off the snesor data. if
 """
 
 def getSensorData(decimalPoint=1):
-        pressure = round(sense.get_pressure(), decimalPoint) # GETS THE PRESSURE DATA FROM THE SENS HAT, ROUNDS OFF THE RESULT
 
         temp = round(sense.get_temperature(), decimalPoint) # GET STE TEMPERATURE FROM THE TEMPRATURE SENSOR
         tempPressure = round(sense.get_temperature_from_pressure(), decimalPoint) # GETS THE THE TEMPRATRUE FROM THE PRESSURE SENSOR
 
         humidity = round(sense.get_humidity(), decimalPoint) # GETS THE HUMIDITY
+        pressure = round(sense.get_pressure(), decimalPoint) # GETS THE ATMOSPHERIC PRESSURE
 
         #accel = sense.get_accelerometer() # THIS IS THE ACCELERATION DATA
+
         accel = sense.get_accelerometer_raw() # THIS THIS IS THE
+        orientation = sense.get_orientation_degrees() # GETS THE ORIENTATION OF THE SENS HAT IN DEGREES
+
+
+
+
 
         #return {"temprature": temp, "tempPressure": tempPressure, "humidity": humidity, "acceleration": accel} # RETURNS THE DATA IN A DICT
-        return [temp, tempPressure, humidity, accel["x"], accel["y"], accel["z"]]
+        #print(sense.get_compass())
+        return [temp, tempPressure, humidity, pressure, accel["x"], accel["y"], accel["z"], round(orientation["roll"], decimalPoint), round(orientation["pitch"], decimalPoint), round(orientation["yaw"], decimalPoint)]
+
+
 
 
 
@@ -75,10 +84,9 @@ def writeSensorData(gpsData, transmitData):
         while True: 
                 startTime = time.time() # GETS THE CURRENT TIME
 
-                data = getSensorData() # GETS THE SENSOR DATA
                 sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
 
-                dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2]}, "acceleration": {"x": sensorData[3], "y": sensorData[4], "z": sensorData[5]}}
+                dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2], "pressure": sensorData[3]}, "acceleration": {"x": sensorData[4], "y": sensorData[5], "z": sensorData[6]}, "orientation": {"roll":sensorData[7], "pitch": sensorData[8], "yaw": sensorData[9]}}
                 setGlobalVarDic(dataDict, transmitData)
 
                 elapsedTime = time.time() - startTime # CALCULATES THE ELAPSED TIME SINCE WE STARTED
@@ -86,7 +94,6 @@ def writeSensorData(gpsData, transmitData):
                         time.sleep(TX_RX_sleep - elapsedTime) # SLEEPS THE PERFECT AMOUNT OF TIME
                 else: 
                         logging.critical(f"      The write sensor script used to mutch time, time constraint: {TX_RX_sleep}. Used time: {elapsedTime}")
-
 
 
 

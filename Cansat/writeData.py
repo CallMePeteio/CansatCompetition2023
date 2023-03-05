@@ -142,7 +142,7 @@ def TX_RX_main(gpsData, transmitData, reciveData):
 
     while True: 
         startTime = time.time() # GETS THE CURRENT TIME
-        run = sendData(transmitData) # TRANSMITS THE DATA, FROM THE "transmit.json" FILE
+        run = sendData(transmitData) # TRANSMITS THE DATA, FROM THE global "transmitData" VARIABLE
 
 
         if elapsedTime(startTime) < TX_RX_sleep * 0.48: # IF THERE IS ENOUGH TIME LEFT TO RECIVE DATA

@@ -27,7 +27,7 @@ videoPath="/home/pi/Desktop/coding/Cansat/video/"
 imgPath="/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/img"
 videoRes, fps, imgScaleXY, imgFlip = (640, 480), 10, (1,1), -1
 
-TX_RX_sleep = 0.5
+TX_RX_sleep = 0.6
 
 
 CS = DigitalInOut(board.CE1) # GETS WHAT THE CS PIN IS, AND MAKES IT AS A OBJ
