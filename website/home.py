@@ -126,6 +126,7 @@ def renderHome():
 
             cursor.execute("UPDATE 'flightmaster' SET endTime=? WHERE id=?", (currentTime, latestFlightID,))
             con.commit()
+            con.close()
 
 
             

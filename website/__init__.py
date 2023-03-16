@@ -9,7 +9,8 @@ from flask import Flask
 import adafruit_rfm9x
 import logging
 import sqlite3
-import struct
+
+
 import socket
 import fcntl
 import busio
@@ -20,11 +21,11 @@ import time
 
 db = SQLAlchemy() # MAKES THE DB OBJECT
 DB_NAME = "database.db" # DEFINES THE NAME OF THE DB
-pathToDB = "/home/pi/Desktop/CansatCompetition2023/instance/database.db" # THIS IS THE PATH TO THE DATABASE
-pathToReciveJson = "/home/pi/Desktop/CansatCompetition2023/instance/recive.json" # RECIVE JSON FULL PATH
-pathToTransmitJson = "/home/pi/Desktop/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
+pathToDB = "/home/pi/code/instance/database.db" # THIS IS THE PATH TO THE DATABASE
+pathToReciveJson = "/home/pi/code/instance/recive.json" # RECIVE JSON FULL PATH
+pathToTransmitJson = "/home/pi/code/instance/transmit.json" # TRANSMIT JSON FULL PATH
 
-TX_RX_sleep = 0.95 # THIS IS HOW MUTCH THE SCRIPT WILL SLEEP BETWEEN TRANSMITTING AND RECIVING
+TX_RX_sleep = 0.8 # THIS IS HOW MUTCH THE SCRIPT WILL SLEEP BETWEEN TRANSMITTING AND RECIVING
 writeRecivedData = False # IF YOU SHOULD WRITE THE RECIVED DATA TO THE DB AND JSON FILE
 
 """
@@ -42,6 +43,8 @@ currentIp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 currentIp.connect(("8.8.8.8", 80))
 currentIp = currentIp.getsockname()[0]
 
+# This is the current columns of the "telemData" table in the db
+telemdataColumnsDB = ["id", "flightId", "time", "atmoTemp", "temperature", "humidity", "pressure", "accelX", "accelY", "accelZ", "rollDeg", "pitchDeg", "yawDeg", "flightTime"] # KEEPS TRACK OF THE COLUMNS IN THE TELEMETRY TABLE
 
 # Configure RFM9x LoRa Radio
 CS = DigitalInOut(board.CE1)
@@ -63,6 +66,7 @@ def create_app():
 
     from .auth import auth
     from .home import home
+    from .graph import Graph
     from .telementry import telem
 
 
@@ -87,7 +91,7 @@ def create_app():
     def load_user(id):
         return User.query.get(int(id))
 
-    return app, TX_RX_main
+    return app, TX_RX_main, TX_RX_sleep, Graph
 
 
 
@@ -213,6 +217,7 @@ def selectFromDB(dbPath, table, argumentList, columnList, valueList, log=True):
             logging.info(f"     Databace command (read): {getString}{valueList}") # LOGS THE DATA
             logging.debug(f"    data recived: {data}")
 
+        con.close()
         return data # RETURNS ALL OF THE DATA
 
     else: 
@@ -242,6 +247,42 @@ def timeToMinutes(time, currentTime=False):
     minutes = (float(hr) * 60) + (float(sec) * 0.0166667) + float(min)
 
   return minutes
+
+
+"""
+_______________________________________ setGlobalVarDic _________________________________________
+
+setGlobalVarDic - This function sets a global variable between threads, such as "gpsData", to the data gathered in the main function "getGpsPos".
+The variable "gpsData" is also used in "sensHat.py" and "writeData.py" in different threads.
+
+This is necessary because we cannot directly assign a value to the global variable "gpsData", instead we must explicitly index the variable to change it.
+
+Parameters:
+    inputDic: The data that you want to set to the global variable. This should be a dictionary.
+    globalDic: The global variable that is used in other threads. This should be a dictionary.
+
+Returns:
+    None
+"""
+
+def setGlobalVarDic(inputDic, globalDic):
+    
+    for key in globalDic.keys(): # LOOPS OVER ALL OF THE KEYS IN "globalVar"
+
+        if isinstance(globalDic[key], dict): # IF THE KEY IS A DICT, MEANING THAT IT IS A NESTED DICTIONARY
+            for nestedKey in globalDic[key].keys(): # LOOPS OVER ALL OF THE KEYS IN THE LISTED DICTIONARY
+
+                if key in inputDic.keys(): # IF THE KEY THAT WE ARE LOOPING OVER EXISTS IN THE "inputVar" VARIABLE
+                    if nestedKey in inputDic[key].keys(): # IF THE KEY THAT WE ARE LOOPING OVER EXISTS IN THE "inputVar" VARIABLE
+                        globalDic[key][nestedKey] = inputDic[key][nestedKey] # SET THE DATA FROM "inputVar" to "globalVar"
+                    else: 
+                        break # STOPS THE FOR LOOP SO WE DONT LOOP OVER UNECCECARY ITEMS
+                else:
+                    break # STOPS THE FOR LOOP SO WE DONT LOOP OVER UNECCECARY ITEMS
+                
+        else: 
+           globalDic[key] = inputDic[key] # SET THE DATA FROM "inputVar" to "globalVar"
+
 
 
 """

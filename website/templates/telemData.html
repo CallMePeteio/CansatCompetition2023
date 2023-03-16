@@ -36,6 +36,15 @@
         </div>
     </div>
 
+    <h5 class="display-4 spacer" style="text-align: center;">Pressure</h5>
+    <div class="col-sm-6 col-md-4 chartBox">
+        <div class="chart-box chartBox">
+            {% set pressureIpAdress = graphUrl + ":5400" %}
+            <iframe src="{{pressureIpAdress}}" style="width: 100vh; height: 100%;"></iframe>
+        </div>
+    </div>
+
+
     <h5 class="display-4 spacer" style="text-align: center;">Humidity</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
@@ -44,10 +53,11 @@
         </div>
     </div>
 
-    <h5 class="display-4 spacer" style="text-align: center;">Humidity</h5>
+    <h5 class="display-4 spacer" style="text-align: center;">Orientation</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
-            <iframe src="" frameborder="0"></iframe>
+            {% set orientationIpAdress = graphUrl + ":5500" %}
+            <iframe src="{{orientationIpAdress}}" style="width: 100vh; height: 100%;"></iframe>
         </div>
     </div>
 

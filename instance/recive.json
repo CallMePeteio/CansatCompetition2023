@@ -1,1 +1,1 @@
-{"gps": {"lat": "67.201335", "lon": "15.166049"}, "telemData": {"temprature": "13.6", "tempPressure": "13.8", "humidity": "35.4"}, "acceleration": {"x": "-0.26312682032585144", "y": "0.5052513480186462", "z": "1.0400981903076172"}}
+{"gps": {"lat": "67.286205", "lon": "14.586896"}, "telemData": {"temprature": "36.0", "tempPressure": "35.9", "humidity": "17.1", "pressure": "1020.8"}, "acceleration": {"x": "-0.05258", "y": "-0.67399", "z": "-0.73851"}, "orientation": {"roll": "221.9", "pitch": "2.6", "yaw": "169.1"}}

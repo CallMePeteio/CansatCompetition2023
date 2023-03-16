@@ -6,21 +6,22 @@ import threading
 import sqlite3
 import socket
 import time
+import json 
 
 debug = False
 DB_NAME = "database.db" # DEFINES THE NAME OF THE DB
-pathToDB = "/home/pi/Desktop/CansatCompetition2023/instance/database.db" # THIS IS THE PATH TO THE DATABASE
-pathToReciveJson = "/home/pi/Desktop/CansatCompetition2023/instance/recive.json" # RECIVE JSON FULL PATH
-pathToTransmitJson = "/home/pi/Desktop/CansatCompetition2023/instance/transmit.json" # TRANSMIT JSON FULL PATH
+pathToDB = "/home/pi/code/instance/database.db" # THIS IS THE PATH TO THE DATABASE
+pathToReciveJson = "/home/pi/code/instance/recive.json" # RECIVE JSON FULL PATH
+pathToTransmitJson = "/home/pi/code/instance/transmit.json" # TRANSMIT JSON FULL PATH
 
-graphUpdateInterval = 1000 # DEFINES HOW MANY TIMES A MILISECOND THE GRAPHS SHOULD UPDATE (ms)
-grafHostDict = {"temperature": ["0.0.0.0", "5200"], "tempPressure": ["0.0.0.0", "5100"], "humidity": ["0.0.0.0", "5300"], "gpsMap": ["0.0.0.0", "5500"]} # THIS KEEPS TRACK OF THE PORT AND IP ADRESS OF THE 
+graphUpdateInterval = 5000 # DEFINES HOW MANY TIMES A MILISECOND THE GRAPHS SHOULD UPDATE (ms)
+grafHostDict = {"temperature": ["0.0.0.0", "5200"], "tempPressure": ["0.0.0.0", "5100"], "humidity": ["0.0.0.0", "5300"], "pressure": ["0.0.0.0", "5400"], "gpsMap": ["0.0.0.0", "5500"], "orientation": ["0.0.0.0", "5600"]} # THIS KEEPS TRACK OF THE PORT AND IP ADRESS OF THE 
 
 currentIp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 currentIp.connect(("8.8.8.8", 80))
 currentIp = currentIp.getsockname()[0]
 
-telemdataColumnsDB = ["id", "flightId", "time", "atmoTemp", "temperature", "humidity", "accelX", "accelY", "accelZ", "flightTime"] # KEEPS TRACK OF THE COLUMNS IN THE TELEMETRY TABLE
+telemdataColumnsDB = ["id", "flightId", "time", "atmoTemp", "temperature", "humidity", "pressure", "accelX", "accelY", "accelZ", "rollDeg", "pitchDeg", "yawDeg", "flightTime"] # KEEPS TRACK OF THE COLUMNS IN THE TELEMETRY TABLE
 
 
 """
@@ -68,12 +69,44 @@ def selectFromDB(dbPath, table, argumentList, columnList, valueList):
 
       cursor.execute(getString, (valueList[0],)) # SELECTS ALL OF THE GPS DATA, WE DO THIS TWICE BECAUSE THE SYNTAX OF THIS SUCS ;(, I NEED TI HAVE TRHE COMMA THERE WHAT A SHIT LIBARY
       data = cursor.fetchall() # FETCHES ALL OF THE DATA, GIVEN THE PARAMETERS ABOVE
+      con.close()
       return data # RETURNS ALL OF THE DATA
 
     else: 
       raise Exception(f"Parameter error when reading from DB, there has to be a value for eatch parameter. Parameters: {columnList}, Values: {valueList}") # IF THERE WAS A ERROR OF THE LENGHT OF THE DATA
 
 
+
+#____________________________________________ readJson ___________________________________________
+
+
+def readJson(dataPath, jsonPath, intToBool=False, log=True):
+
+    for i in range(int(10 * 10)): # THE READ JSON SCRIPT TRIES A COUPLE OF TIMES IF THE DATA IN THE JSON FILE IS EMPTY, THIS IS BECAUSE MOST OF THE TIME THE REASON BECAUSE IT IS EMPTY IS BECAUSE THERE IS SOMEONE WRITING TO IT
+        try:
+            with open(jsonPath, "r+") as inFile: # OPENS THE FILE THAT YOU WANT TO READ
+
+                jsonData = json.load(inFile) # LOADS THE JSON
+
+                try:
+                    for path in dataPath: # LOOPS OVER THE PATH IN THE DATA PATH, JSONDATA IS REWRITTEN TO MAKE THE JSON PATH DYNAMIC
+                        jsonData = jsonData[path]
+                except:
+                    raise Exception(f"Wrong jsonData path entered, path: {dataPath}") # IF THERE IS AN ERROR WITH FINDING THE PATH
+
+
+
+                if intToBool == True: # IF YOU WANT TO CONVERT BOOL TO INTEGER
+                    if jsonData == 0: # IF JSON DATA IS 0
+                        jsonData = False # SET THE DATA AS FALSE
+                    elif jsonData == 1: # IF THE DATA IS 1
+                        jsonData = True # SET THE DATA AS TRUE
+                    else: 
+                        raise Exception(f"    The data: {jsonData} cannot be converted to bolean, because the data isnt 0 or 1") # MAKES AN ERROR IF THE DATA RECIVED IS WRONG
+
+                return jsonData # RETURNS THE DATA
+        except:
+           pass
 
 """
 ___________________________________________ timeToMinutes ________________________________________

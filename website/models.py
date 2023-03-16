@@ -37,6 +37,7 @@ class GPSdata(db.Model):
     lon = db.Column(db.Float(150))
 
 
+
 class Telemdata(db.Model):
     __tablename__ = 'telemdata'
     id = db.Column(db.Integer, primary_key=True)
@@ -47,9 +48,15 @@ class Telemdata(db.Model):
     atmoTemp = db.Column(db.Float(60))
     temperature = db.Column(db.Float(60))
     humidity = db.Column(db.Float(60))
+    pressure = db.Column(db.Float(60))
+
     accelX = db.Column(db.Float(60))
     accelY = db.Column(db.Float(60))
     accelZ = db.Column(db.Float(60))
+
+    rollDeg = db.Column(db.Float(60))
+    pitchDeg = db.Column(db.Float(60))
+    yawDeg = db.Column(db.Float(60))
 
     flightTime = db.Column(db.Float(150))
 
