@@ -63,7 +63,7 @@ class Graph:
 
             while latestTemp == None and latesTime == None: 
                 latestTemp = self.updateData[self.dictDataPath[0]][self.dictDataPath[1][0]]
-                latestTime = self.updateData[self.dictDataPath[2]]  
+                latestTime = self.updateData[self.dictDataPath[2]] 
 
                 if i != 0: 
                     time.sleep(self.updateTime/5000)

@@ -4,13 +4,14 @@ from digitalio import DigitalInOut, Direction, Pull
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from datetime import datetime
+from flask import current_app
 from flask import Flask
 
 import adafruit_rfm9x
 import logging
 import sqlite3
 
-
+import threading
 import socket
 import fcntl
 import busio
@@ -52,13 +53,16 @@ RESET = DigitalInOut(board.D25)
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 radio = adafruit_rfm9x.RFM9x(spi, CS, RESET, 433.0, baudrate=10000000) # baudrate=10000000
 
+# Makes the data Lock
+dataLock = threading.Lock() # KEEPS TRACK OF THE LOCK, TO ENSURE THAT THERE ISNT 2 SCRIPTS SIMUNANIUSLY READING/WRITING TO IT
 
 
-def create_app():
+def create_app(reciveData, transmitData):
     app = Flask(__name__)
 
-    #app.config['FLASK_DEBUG'] = 1
-    #app.config['DEBUG'] = True
+    
+    app.config['reciveData'] = reciveData # SETS THE RECIVE DATA TO A GLOBAL VARIABLE, THAT CAN BE ACSESSED ALONG THREADS AND HAS A LOCK FUNCTION
+    app.config['transmitData'] = transmitData # SETS THE RECIVE DATA TO A GLOBAL VARIABLE, THAT CAN BE ACSESSED ALONG THREADS AND HAS A LOCK FUNCTION
 
     app.config['SECRET_KEY'] = 'hjshjhdjvgdfhgfsdghgfsdasaJKSDFGDRJKGHRR4784434ahkjshkjdhjslkjhjhlkhlkjhlhlh'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
@@ -69,12 +73,11 @@ def create_app():
     from .graph import Graph
     from .telementry import telem
 
-
-
     app.register_blueprint(auth, url_prefix='/')
     app.register_blueprint(home, url_prefix="/")
     app.register_blueprint(telem, url_prefix="/")
    
+    from .physical import mainSwitch
     from .transmit import TX_RX_main
     from .models import User, GPSdata
 
@@ -91,7 +94,7 @@ def create_app():
     def load_user(id):
         return User.query.get(int(id))
 
-    return app, TX_RX_main, TX_RX_sleep, Graph
+    return app, TX_RX_main, TX_RX_sleep, Graph, mainSwitch
 
 
 
@@ -99,76 +102,65 @@ def create_app():
 
 
 
+"""
+_________________________________________ readGobalFlaskVar ______________________________________
+
+This function reads the global flask variable decleared in __init__.py, for example: app.config['reciveData'] = reciveData
+
+If you want to read a variable from the global scope in flask this is the correct syntax: current_app.config['transmitData']
+That line reads the "transmitData" golbal scope variable.
+
+varName = This is the name of the variable you want to read, for example: "transmitData" if you want to read the transmitData variable (str)
+dataLock = This is the lock that is beeing used for making sure that there isnt two scripts reading/writing to it in the same time. 
+
+"""
+def readGobalFlaskVar(varName, dataLock, log=True): 
+    
+    if log == True:
+        logging.info(f"     Readed variable from {varName}") # LOGS THE OUTPUT
+
+    with dataLock: # CHECKS IF THE LOCK IS OPEN, MEANING THAT THERE ISNT ANOTHER THREAD READING THE VARIABLE
+        return current_app.config[varName] # RETURNS THE VARIABLE
 
 
 """
-___________________________________________ writeJson ___________________________________________
+________________________________________ writeGobalFlaskVar ______________________________________
 
-This function writes json to a specified json file
+This function writes to a global flask variable decleared in __init__.py for example: app.config['reciveData'] = reciveData
 
-dataPath = This is the path insdie the JSON file that you want to change the value to. for example in a json file that looks like this: {"basic": {"isOn": 0}}. If you want to change the value to IsOn then you need to input ["basic", "isOn"]. (list)
-value = When you have specified the path, then you need to input what the value you want to chagne to. for example in the json above {"basic": {"isOn": 0}} you want to change the value 0 to 1. Input 1
-jsonPath = This is the path to the json file. example: "D:/Scripts/Python/canSat/website/instance/transmit.json"
-log = If you want the function to log out what variable is changed. NOTE the logging level will also block the logging.
+if you want to read a variable from the global flask scope then this is the correct syntax: current_app.config['transmitData'].
+When you have read a variable you can treat it as a normal variable, forexample current_app.config['transmitData'] = {"basic": {"isOn": 1, "exaple": 0}}.
+
+dataPath = This is the path you want to read data from, NOTE the first index of this is the variable name. for example if i want to read a variable from the dict above: current_app.config['transmitData'] = {"basic": {"isOn": 1, "exaple": 0}}
+then you need to input ["transmitData", "basic", "isOn"] (list)
+value = This is what value you want to set is, in the example above if you want to change the variable to 0 then input 0. (str)
+log = If you want to log the result, set to True on default (bool)
 
 """
-def writeJson(dataPath, value, jsonPath, log=True): 
-    with open(jsonPath, "r+") as inFile: # OPENS THE FILE THAT YOU WANT TO CHANGE TO
-        jsonData = json.load(inFile) # LOADS THE JSON
 
-        if len(dataPath) == 1: # CHECKS IF YOU ONLY WANTED ONE KEY DEEP
-            jsonData[dataPath[0]] = value # SETS THE DATA TO THE VALUE
+def writeGobalFlaskVar(dataPath, value, dataLock, log=True): 
 
-            if log == True: #  CHECKS IF THE USER WANTS TO LOG THE ACTION
-                logging.info(f"     Changed variable in transmit.json (path):{dataPath}, value: {value}")
+    def logAction(dataPath, value, log): 
+        if log == True: #  CHECKS IF THE USER WANTS TO LOG THE ACTION
+            logging.info(f"     Changed value in the global flask dict: {dataPath[0]} (path):{dataPath}, value: {value}")
 
 
-        elif len(dataPath) == 2:  # CHECKS IF YOU ONLY WANTED TWO KEY DEEP
-            jsonData[dataPath[0]][dataPath[1]] = value # SETS THE DATA TO THE VALUE
+    with dataLock: # IF THE LOCK IS FREE, MEANING THAT THERE ISNT ANOTHER SCRIPT READING/WRITING ON THIS VARIABLE
+        if len(dataPath) == 2: # IF THERE IS 2 IN LENGTH OF THE DATAPATH
+            current_app.config[dataPath[0]][dataPath[1]] = value # SETS THE VALUE OF THE DATAPATH TO THE VALUE INPUTTED
+            logAction(dataPath, value, log) # LOGS THE ACTION
 
-            if log == True: #  CHECKS IF THE USER WANTS TO LOG THE ACTION
-                logging.info(f"     Changed variable in transmit.json (path):{dataPath}, value: {value}")
+        elif len(dataPath) == 3: # IF THERE IS 3 IN LENGTH OF THE DATAPATH
+            current_app.config[dataPath[0]][dataPath[1]][dataPath[2]] = value # SETS THE VALUE OF THE DATAPATH TO THE VALUE INPUTTED
+            logAction(dataPath, value, log) # LOGS THE ACITON
 
-        else:
-            raise Exception("the length of the datapath is wrong, supported length is 1 and 2") # MAKES AN ERROR IF YOU CHOSE MORE THAN 2 OR LESS THAN 1 IN THE KEY SEARCH
-
-    with open(jsonPath, "w") as file: # OPENS THE FILE IN WRITE MODE 
-        json.dump(jsonData, file) # DUMPS THE JSON TO THE JSON FILE
+        else: 
+            raise Exception(f"the length of the datapath is wroong. inputted dataPath: {dataPath}") # IF THERE IS AN ERROR WITH THE DATA PATH
+            
 
 
 
-#____________________________________________ readJson ___________________________________________
 
-
-def readJson(dataPath, jsonPath, intToBool=False, log=True):
-
-    for i in range(int(TX_RX_sleep * 10)): # THE READ JSON SCRIPT TRIES A COUPLE OF TIMES IF THE DATA IN THE JSON FILE IS EMPTY, THIS IS BECAUSE MOST OF THE TIME THE REASON BECAUSE IT IS EMPTY IS BECAUSE THERE IS SOMEONE WRITING TO IT
-        try:
-            with open(jsonPath, "r+") as inFile: # OPENS THE FILE THAT YOU WANT TO READ
-
-                jsonData = json.load(inFile) # LOADS THE JSON
-
-                try:
-                    for path in dataPath: # LOOPS OVER THE PATH IN THE DATA PATH, JSONDATA IS REWRITTEN TO MAKE THE JSON PATH DYNAMIC
-                        jsonData = jsonData[path]
-                except:
-                    raise Exception(f"Wrong jsonData path entered, path: {dataPath}") # IF THERE IS AN ERROR WITH FINDING THE PATH
-
-                if log == True: #  CHECKS IF THE USER WANTS TO LOG THE ACTION
-                    logging.info(f"     Readed variable from transmit.json (path): {dataPath}. value: {jsonData}") # LOGS THE OUTPUT
-
-                if intToBool == True: # IF YOU WANT TO CONVERT BOOL TO INTEGER
-                    if jsonData == 0: # IF JSON DATA IS 0
-                        jsonData = False # SET THE DATA AS FALSE
-                    elif jsonData == 1: # IF THE DATA IS 1
-                        jsonData = True # SET THE DATA AS TRUE
-                    else: 
-                        raise Exception(f"    The data: {jsonData} cannot be converted to bolean, because the data isnt 0 or 1") # MAKES AN ERROR IF THE DATA RECIVED IS WRONG
-
-                return jsonData # RETURNS THE DATA
-        except: 
-            logging.error(f"     Error reading the data: {dataPath} From {jsonPath}. Total Tries: {i}")
-            time.sleep(TX_RX_sleep/30) # SLEEPS A BIT TO LET THE OTHER SCRIPT WRITE THE DATA    
 
 """
 
@@ -224,31 +216,6 @@ def selectFromDB(dbPath, table, argumentList, columnList, valueList, log=True):
       raise Exception(f"Parameter error when reading from DB, there has to be a value for eatch parameter. Parameters: {columnList}, Values: {valueList}") # IF THERE WAS A ERROR OF THE LENGHT OF THE DATA
 
 
-
-
-"""
-___________________________________________ timeToMinutes ________________________________________
-This function turns a HR:MIN:SEC time format into minutes, this is used to calclate how mutch time has elapsed since the cansat has started, just take the endtime  minus the startTime
-
-time = This is the current time in hr:min:sec format (str)
-currentTime = This is if you want to get the current time
-"""
-def timeToMinutes(time, currentTime=False): 
-  if currentTime == False: 
-    hr, min, sec = time.split(':')
-    minutes = (float(hr) * 60) + (float(sec) * 0.0166667) + float(min)
-
-  else: 
-    now = datetime.now()
-    currentTime = now.strftime("%H:%M:%S")
-
-    hr, min, sec = currentTime.split(':')
-
-    minutes = (float(hr) * 60) + (float(sec) * 0.0166667) + float(min)
-
-  return minutes
-
-
 """
 _______________________________________ setGlobalVarDic _________________________________________
 
@@ -283,6 +250,29 @@ def setGlobalVarDic(inputDic, globalDic):
         else: 
            globalDic[key] = inputDic[key] # SET THE DATA FROM "inputVar" to "globalVar"
 
+
+
+"""
+___________________________________________ timeToMinutes ________________________________________
+This function turns a HR:MIN:SEC time format into minutes, this is used to calclate how mutch time has elapsed since the cansat has started, just take the endtime  minus the startTime
+
+time = This is the current time in hr:min:sec format (str)
+currentTime = This is if you want to get the current time
+"""
+def timeToMinutes(time, currentTime=False): 
+  if currentTime == False: 
+    hr, min, sec = time.split(':')
+    minutes = (float(hr) * 60) + (float(sec) * 0.0166667) + float(min)
+
+  else: 
+    now = datetime.now()
+    currentTime = now.strftime("%H:%M:%S")
+
+    hr, min, sec = currentTime.split(':')
+
+    minutes = (float(hr) * 60) + (float(sec) * 0.0166667) + float(min)
+
+  return minutes
 
 
 """

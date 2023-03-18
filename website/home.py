@@ -1,14 +1,15 @@
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, login_required, logout_user, current_user
+from flask import Blueprint, render_template, request
+from flask_login import login_required, current_user
 
 from .models import Flightmaster
 from datetime import datetime
 
-from . import pathToDB, selectFromDB
-from . import readJson, writeJson
-from . import pathToTransmitJson
+from . import writeGobalFlaskVar
+from . import readGobalFlaskVar
+from . import selectFromDB
+from . import dataLock
+from . import pathToDB
 from . import logging
 from . import db
 
@@ -95,9 +96,7 @@ def renderHome():
 
             if request.form.get(id[0]) == id[1]: # CHECKS IF YOU WANT TO TURN ON THE CANSAT
                 logging.info(f"     The {id[1]} button was pressed!") # LOGS THE OUTPUT
-                writeJson([data[0], data[1]], data[2], pathToTransmitJson) # SETS THE "isOn" KEY IN THE JSON FILE TO 1
-
-
+                writeGobalFlaskVar(["transmitData", data[0], data[1]], data[2], dataLock) #  SETS THE "isOn" KEY IN THE GLOBAL VARIABLE (FLASK) "transmitData" FILE TO 1
 
 #---------------- ADDS A NEW FLIGHT IF THE USER CLICKED THE BUTTON
         startFlight = btnDict["basicSatrtFlight"]["htmlIdentifier"]
@@ -129,16 +128,10 @@ def renderHome():
             con.close()
 
 
-            
-            
 
-    if request.method == "GET": 
-        pass
-
-    onCansat = readJson(["basic", "isOn"], pathToTransmitJson, intToBool=True) # CHECKS IF THE CANSAT IS ON
-    startVideo = readJson(["camera", "startVid"], pathToTransmitJson, intToBool=True) # CHECKS IF THE USER WANTS TO START RECORDING VIDEO
-
-    videoLength = readJson(["camera", "videoLength"], pathToTransmitJson) # GETS THE VIDEO LENGTH FROM THE transmit.json FILE
+    onCansat = readGobalFlaskVar("transmitData", dataLock)["basic"]["isOn"]  # CHECKS IF THE CANSAT IS ON
+    startVideo = readGobalFlaskVar("transmitData", dataLock)["camera"]["startVid"] # CHECKS IF THE USER WANTS TO START RECORDING VIDEO
+    videoLength = readGobalFlaskVar("transmitData", dataLock)["camera"]["videoLength"]  # GETS THE VIDEO LENGTH FROM THE GLOBAL VARIABLE "transmitData" (json)
 
     print() # TO MAKE THE LOGGINGS READEBLE
     return render_template("home.html", user=current_user, cameraRecording=startVideo, videoText=videoLength, online=onCansat)

@@ -1,6 +1,5 @@
 
 
-from sqlalchemy.dialects.mysql import FLOAT
 from flask_login import UserMixin
 from sqlalchemy.sql import func
 from . import db

@@ -1,11 +1,13 @@
 
 
 
-from . import readJson, pathToTransmitJson, pathToReciveJson, pathToDB, TX_RX_sleep, logging, loggingLevel, timeToMinutes, selectFromDB, db, writeRecivedData, radio, setGlobalVarDic
-from flask_login import LoginManager, current_user
-from flask_sqlalchemy import SQLAlchemy
+from . import pathToDB, logging, loggingLevel, timeToMinutes, selectFromDB, db, radio, setGlobalVarDic
 from .models import GPSdata, Telemdata
+from flask import current_app
 
+
+
+from . import readGobalFlaskVar, dataLock
 from sys import getsizeof
 
 import threading
@@ -65,6 +67,7 @@ def uncompressData(dictValues, emptyDict, seperator=","):
         return emptyDict_ # RETURNS THE UNCOMPTESSED DTAA
     except IndexError:
         logging.critical(f"There was an error ucompessing the data recived \n dictValues: {dictValues} \n emptyDict: {emptyDict_}")
+        return None
 
 """
 _________________________________________ compressData __________________________________________
@@ -97,13 +100,13 @@ def compressData(dictionary, seperator=","):
 
 
 
-def sendData():
-    with open(pathToTransmitJson, "r+") as inFile: # OPENS THE TRANSMIT FILE
-        jsonData = json.load(inFile) # LOADS THE FILE
-        compressedData = compressData(jsonData)
+def sendData(transmitData):
+    try: 
+        compressedData = compressData(transmitData) # COMPRESSES THE DATA THAT IS FOR SENDING
         radio.send(bytes(compressedData, "utf-8")) # SENDS THE DATA WITH THE "rfm9x" LORA RADIO MODULE
+    except UnicodeDecodeError: # IF THERE WAS AN ERROR SENDING THE DATA
+        logging.error(f"     There was an error sending: {transmitData} to the cansat!")
 
-    return jsonData
         
 
 def writeReciveData(recivedData):
@@ -131,12 +134,6 @@ def writeReciveData(recivedData):
         db.session.add(gpsData)
         db.session.add(telemData)
         db.session.commit()
-     
-
-
-# -- WRITES THE GATHERED DATA TO THE RECIVE.JSON FILE (NOT USED)
-    with open(pathToReciveJson, "w") as file: # OPENS THE FILE IN WRITE MODE 
-        json.dump(recivedData, file) # DUMPS THE JSON TO THE JSON
 
 
     return recivedData, estimatedFlightTime # RETURNS TRUE TO NOT STOP READING AND WRITING
@@ -149,7 +146,7 @@ def elapsedTime(startTimeFloat):
     return time.time() - startTimeFloat 
 
 
-def TX_RX_main(app, reciveData): 
+def TX_RX_main(app, reciveData, transmitData): 
 
     i, totalTime, prevPacket = 0, 0, "None"
 
@@ -159,19 +156,23 @@ def TX_RX_main(app, reciveData):
         while True: 
             startTime = time.time() # GETS THE CURRENT TIME
 
+            hasStartedFlight = readGobalFlaskVar("transmitData", dataLock, log=False)["basic"]["runFlight"] # CHECKS IF THE USER HAS STARTED HIS FLIGHT
 
-            hasStartedFlight = readJson(["basic", "runFlight"], pathToTransmitJson, intToBool=True, log=False)
-
-            if hasStartedFlight == True:
+            if hasStartedFlight == 1:
                 packet = radio.receive() # GETS DATA FROM THE RADIO
                 if packet is not None and packet != prevPacket: # IF THERE IS A PACKET
                     prevPacket = packet
 
                     try:
                         recvieData_ = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY        
-                        recvieData_, flightTime = writeReciveData(recvieData_) # WRITES THE DATA TO THE DB
-                        recvieData_["flightTime"] = flightTime # ADDS THE FLIGHT TIME TO THE RECIVE DATA VARIABLE, THIS IS FOR THE GRAPH UPDATING
-                        setGlobalVarDic(recvieData_, reciveData) # SETS THE GLOBAL VARIABLE
+                        
+                        if recvieData_ != None: 
+                            recvieData_, flightTime = writeReciveData(recvieData_) # WRITES THE DATA TO THE DB
+                            recvieData_["flightTime"] = flightTime # ADDS THE FLIGHT TIME TO THE RECIVE DATA VARIABLE, THIS IS FOR THE GRAPH UPDATING
+
+                            with dataLock: # IF THE LOCK IS OPEN
+                                current_app.config["reciveData"] = recvieData_ # SETS THE GLOBAL VARIABLE
+                            setGlobalVarDic(recvieData_, reciveData) # SETS THE GLOBAL VARIABLE
 
 
                     except UnicodeDecodeError: 
@@ -179,7 +180,7 @@ def TX_RX_main(app, reciveData):
 
                     
 
-                    sendData() # SENDS THE DATA IN "transmit.json"
+                    sendData(transmitData) # SENDS THE DATA IN "transmit.json"
 
                     if loggingLevel <= 10: # IF YOU WANT TO LOG OUT THE RESULT
                         i+=1 # ADDS 1 TO THE INDEX VARIABLE, THIS IS TO CALCULATE AVG TIME
@@ -194,7 +195,7 @@ def TX_RX_main(app, reciveData):
                             #totalTime, i = 0, 0
 
             else: 
-                sendData() # SENDS THE DATA IN "transmit.json"
+                sendData(transmitData) # SENDS THE DATA IN "transmit.json"
 
 
 
