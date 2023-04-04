@@ -139,7 +139,6 @@ log = If you want to log the result, set to True on default (bool)
 """
 
 def writeGobalFlaskVar(dataPath, value, dataLock, log=True): 
-
     def logAction(dataPath, value, log): 
         if log == True: #  CHECKS IF THE USER WANTS TO LOG THE ACTION
             logging.info(f"     Changed value in the global flask dict: {dataPath[0]} (path):{dataPath}, value: {value}")
