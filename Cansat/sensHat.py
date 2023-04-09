@@ -4,15 +4,24 @@ from . import TX_RX_sleep, logging, writeJson, loggingLevel
 from . import setGlobalVarDic
 
 
-
+from adafruit_bitbangio import I2C as BitBangI2C
+from adafruit_ccs811 import CCS811
 from sense_hat import SenseHat
 from .gpsModule import Gps
+
+import adafruit_bme680
+import board
 import time
 import json
 
 
-sense = SenseHat() # MAKES THE SENS HAT OBJECT
+i2c = BitBangI2C(board.SCL, board.SDA) # ININTIALIZES THE I2C CONNECTION
 
+ccs811 = CCS811(i2c) # CONNECTS TO THE "cca811" SENSOR
+time.sleep(2) # SLEEPS A BEIT TO MAKE SURE THE "ccs811" SENSOR IS DONE
+bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c) # ININTIALIZES THE "bme680" SENSOR
+
+#sense = SenseHat() # MAKES THE SENS HAT OBJECT
 
 
 """
@@ -73,21 +82,57 @@ def getSensorData(decimalPoint=1):
         return [temp, tempPressure, humidity, pressure, accel["x"], accel["y"], accel["z"], round(orientation["roll"], decimalPoint), round(orientation["pitch"], decimalPoint), round(orientation["yaw"], decimalPoint)]
 
 
+def getSensorDataExternal(TX_RX_sleep):
+        
+    for _ in range(int(TX_RX_sleep * 10)): # LOOPS OVER MULTIBLE TIMES OVER THE TRY EXCEPT STATMENT
+        try: 
+            i=0 # KEEPS TRACK OVER THE AMOUNT TRIED
+            while ccs811.data_ready == False: # CHECKS IF THE "css811" SENSOR IS READY TO SEND DATA
+                if i > int(TX_RX_sleep*10): # IF IT NEEDS TO TRY MORE THAN 10 TRIES TO READ DATA
+                    logging.critical(f"     The ccs811 sensor is not ready! Times tried: {i}") # LOGS OUT THE ERROR
+
+                i+=1 # ADDS ONE TO I 
+                time.sleep(TX_RX_sleep/10) # SLEEPS FOR A BIT
+        
+
+            co2 = ccs811.eco2
+            tvoc = ccs811.tvoc
+
+            temp = bme680.temperature
+            gas = bme680.gas
+            humidity = bme680.humidity
+            pressure = bme680.pressure
+
+            return [temp, pressure, humidity, gas, co2, tvoc]
+
+        except Exception as error:
+            logging.error(f"     There was an error reading data from the external Sensors \n     Error msg:  {error}")
+            time.sleep(TX_RX_sleep/4)
+    
+    logging.critical("   Skipped reading data from the external sensors, because it gave to many errors")
+    return None
 
 
 
 
 def writeSensorData(gpsData, transmitData): 
 
-        dataDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "tempPressure": None, "humidity": None}, "acceleration": {"x": None, "y": None, "z": None}}
+    dataDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "pressure": None, "humidity": None, "gas": None, "co2": None, "tvoc": None}}
+    while True: 
+            startTime = time.time() # GETS THE CURRENT TIME
 
-        while True: 
-                startTime = time.time() # GETS THE CURRENT TIME
+                #sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
+                #print(sensorData)
 
-                sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
+            exSensData = getSensorDataExternal(TX_RX_sleep)
+            #exSensData = None
 
-                dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2], "pressure": sensorData[3]}, "acceleration": {"x": sensorData[4], "y": sensorData[5], "z": sensorData[6]}, "orientation": {"roll":sensorData[7], "pitch": sensorData[8], "yaw": sensorData[9]}}
+            if exSensData != None:     
+                dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": exSensData[0], "pressure": exSensData[1], "humidity": exSensData[2], "gas": exSensData[3], "co2": exSensData[4], "tvoc": exSensData[5]}}
                 setGlobalVarDic(dataDict, transmitData)
+
+                #dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": sensorData[0], "tempPressure": sensorData[1], "humidity": sensorData[2], "pressure": sensorData[3]}, "acceleration": {"x": sensorData[4], "y": sensorData[5], "z": sensorData[6]}, "orientation": {"roll":sensorData[7], "pitch": sensorData[8], "yaw": sensorData[9]}}
+                #setGlobalVarDic(dataDict, transmitData)
 
                 elapsedTime = time.time() - startTime # CALCULATES THE ELAPSED TIME SINCE WE STARTED
                 if elapsedTime < TX_RX_sleep: # IF THE SCRIPT HAS USED MORE TIME THAN IT SHULD
@@ -97,5 +142,17 @@ def writeSensorData(gpsData, transmitData):
 
 
 
+
+#while True: 
+    #data = getSensorDataExternal()
+    #print(data)
+
+
+    #time.sleep(0.5)
+
+
+
+
+#writeSensorData(1, 2)
 
 

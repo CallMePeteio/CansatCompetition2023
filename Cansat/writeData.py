@@ -12,8 +12,6 @@ import time
 import json 
 
 
-
-
 """
 recive data Dict is 232 bytes
 """
@@ -45,12 +43,12 @@ emptyDict = This is a empty dictorary that wil be filled in of the inputted comp
 seperator = This is the seperator you want to have between the data
 
 """
-emptyDict = {"basic": {"isOn": None, "prime": None, "reset": None}, "manualControl": {"activated": None, "left": None, "right": None}, "miscFunctions": {"beeper": None, "lights": None, "x": None, "y": None}, "camera": {"startVid": None, "photo": None, "videoLength": None}}
+emptyDict = {"basic": {"isOn": None, "prime": None, "reset": None}, "manualControl": {"activated": None, "degrees": None}, "miscFunctions": {"beeper": None, "lights": None, "x": None, "y": None}, "camera": {"startVid": None, "photo": None, "videoLength": None}}
 
 def uncompressData(dictValues, emptyDict, seperator=","):
     dictValues = dictValues.split(seperator)
   
-    emptyDict = {"basic": {"isOn": None, "prime": None, "reset": None}, "manualControl": {"activated": None, "left": None, "right": None}, "miscFunctions": {"beeper": None, "lights": None, "x": None, "y": None}, "camera": {"startVid": None, "photo": None, "videoLength": None}}
+    emptyDict = {"basic": {"isOn": None, "prime": None, "reset": None}, "manualControl": {"activated": None, "degrees": None}, "miscFunctions": {"beeper": None, "lights": None, "x": None, "y": None}, "camera": {"startVid": None, "photo": None, "videoLength": None}}
     emptyDict_ = emptyDict # SO THE SCIPT DOSENT OVERWRITE THE EMPTY DICTIONARY
 
     i=0 # KEEPS TRACK OF THE INDEX THAT WE ARE ON
@@ -103,7 +101,7 @@ def compressData(dictionary, seperator=","):
 
 
 def sendData(transmitData):
-
+    print(transmitData)
     compresseData = compressData(transmitData)  # COMPRESSES THE DATA
     radio.send(bytes(compresseData, "utf-8")) # SENS THE COMPRESSED DATA DICT WITH THE rfm9x LORA RADIO
 
@@ -154,6 +152,7 @@ def TX_RX_main(gpsData, transmitData, reciveData):
 
 
 
+
         if elapsedTime(startTime) < TX_RX_sleep: # IF THERE IS ANY SPARE TIME LEFT
             time.sleep(TX_RX_sleep - elapsedTime(startTime)) # SLEEP THE SPARE TIME
 
@@ -174,7 +173,6 @@ def TX_RX_main(gpsData, transmitData, reciveData):
 
 
     raise Exception("Error ending or reciving data (run=False)")
-
 
 
 

@@ -27,7 +27,7 @@ videoPath="/home/pi/Desktop/coding/Cansat/video/"
 imgPath="/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/img"
 videoRes, fps, imgScaleXY, imgFlip = (640, 480), 10, (1,1), -1
 
-TX_RX_sleep = 0.6
+TX_RX_sleep = 0.7
 
 
 CS = DigitalInOut(board.CE1) # GETS WHAT THE CS PIN IS, AND MAKES IT AS A OBJ
@@ -38,7 +38,7 @@ radio = adafruit_rfm9x.RFM9x(spi, CS, RESET, 433.0) # MAKES THE radio OBJECT FOR
 
 
 def startApp(): 
-    #from .camera import Camera
+    from .camera import Camera
 
     from .sensHat import writeSensorData
     from .writeData import TX_RX_main
@@ -46,13 +46,6 @@ def startApp():
     from .recive import action
 
     return writeSensorData, TX_RX_main, getGpsPos, action
-
-
-
-
-
-
-
 
 
 
