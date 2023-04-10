@@ -45,7 +45,7 @@ currentIp.connect(("8.8.8.8", 80))
 currentIp = currentIp.getsockname()[0]
 
 # This is the current columns of the "telemData" table in the db
-telemdataColumnsDB = ["id", "flightId", "time", "atmoTemp", "temperature", "humidity", "pressure", "accelX", "accelY", "accelZ", "rollDeg", "pitchDeg", "yawDeg", "flightTime"] # KEEPS TRACK OF THE COLUMNS IN THE TELEMETRY TABLE
+telemdataColumnsDB = ["id", "flightId", "time", "temperature", "pressure", "humidity", "gas", "co2", "tvoc", "flightTime"] # KEEPS TRACK OF THE COLUMNS IN THE TELEMETRY TABLE
 
 # Configure RFM9x LoRa Radio
 CS = DigitalInOut(board.CE1)

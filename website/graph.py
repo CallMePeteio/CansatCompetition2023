@@ -28,7 +28,6 @@ class Graph:
         self.port = port
 
 
-
         self.external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
         self.graph = dash.Dash(__name__, external_stylesheets=self.external_stylesheets)
 
@@ -76,7 +75,6 @@ class Graph:
         self._register_callbacks()
 
         self.updateData = reciveData
-
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
             isRunning = s.connect_ex((currentIp, int(self.port))) == 0

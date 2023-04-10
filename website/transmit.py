@@ -1,7 +1,7 @@
 
 
 
-from . import pathToDB, logging, loggingLevel, timeToMinutes, selectFromDB, db, radio, setGlobalVarDic
+from . import pathToDB, logging, loggingLevel, timeToMinutes, selectFromDB, db, radio, setGlobalVarDic, TX_RX_sleep
 from .models import GPSdata, Telemdata
 from flask import current_app
 
@@ -45,11 +45,12 @@ seperator = This is the seperator you want to have between the data
 """
 
 
-emptyDict = {'gps': {'lat': None, 'lon': None}, 'telemData': {'temprature': None, 'tempPressure': None, 'humidity': None, 'pressure': None}, 'acceleration': {'x': None, 'y': None, 'z': None}, 'orientation': {'roll': None, 'pitch': None, 'yaw': None}}
+emptyDict = reciveData = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "pressure": None, "humidity": None, "gas": None, "co2": None, "tvoc": None}}
+
 
 def uncompressData(dictValues, emptyDict, seperator=","):
     dictValues = dictValues.split(seperator)
-    emptyDict = {'gps': {'lat': None, 'lon': None}, 'telemData': {'temprature': None, 'tempPressure': None, 'humidity': None, 'pressure': None}, 'acceleration': {'x': None, 'y': None, 'z': None}, 'orientation': {'roll': None, 'pitch': None, 'yaw': None}}
+    emptyDict = reciveData = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "pressure": None, "humidity": None, "gas": None, "co2": None, "tvoc": None}}
     emptyDict_ = emptyDict # SO THE SCIPT DOSENT OVERWRITE THE EMPTY DICTIONARY
 
 
@@ -101,6 +102,9 @@ def compressData(dictionary, seperator=","):
 
 
 def sendData(transmitData):
+    #transmitDataClone = transmitData # CREATES A CLONE OF THE MAIN "transmitData" VARIABLE
+    #transmitDataClone.popitem() # REMOVES THE LAS INDEX OF THE DICTIONARY. MEANING IT WILL REMOVE "flightTime", WITCH WE DO NOT WANT TO SEND
+
     try: 
         compressedData = compressData(transmitData) # COMPRESSES THE DATA THAT IS FOR SENDING
         radio.send(bytes(compressedData, "utf-8")) # SENDS THE DATA WITH THE "rfm9x" LORA RADIO MODULE
@@ -110,6 +114,7 @@ def sendData(transmitData):
         
 
 def writeReciveData(recivedData):
+    #print(recivedData)
 
 # -- GETS THE LAST FLIGHT ID AND THE START TIME OF THAT FLIGHT
     flightData = selectFromDB(pathToDB, "flightmaster", ["WHERE"], ["loginId"], ["1"], log=False) # GETS ALL OF THE PREVIUS FLIGHTS OF THE ADMIN
@@ -129,14 +134,14 @@ def writeReciveData(recivedData):
 
 # -- WRITES THE DATA RECIVED TO THE DB
         gpsData = GPSdata(flightId=latestFlightID, lat=recivedData["gps"]["lat"], lon=recivedData["gps"]["lon"])
-        telemData = Telemdata(flightId=latestFlightID, atmoTemp=recivedData["telemData"]["tempPressure"], temperature=recivedData["telemData"]["temprature"], humidity=recivedData["telemData"]["humidity"], pressure=recivedData["telemData"]["pressure"], accelX=recivedData["acceleration"]["x"], accelY=recivedData["acceleration"]["y"], accelZ=recivedData["acceleration"]["z"], rollDeg=recivedData["orientation"]["roll"], pitchDeg=recivedData["orientation"]["pitch"], yawDeg=recivedData["orientation"]["yaw"], flightTime=estimatedFlightTime)
+        telemData = Telemdata(flightId=latestFlightID, temperature=recivedData["telemData"]["temprature"], pressure=recivedData["telemData"]["pressure"], humidity=recivedData["telemData"]["humidity"], gas=recivedData["telemData"]["gas"], co2=recivedData["telemData"]["co2"], tvoc=recivedData["telemData"]["tvoc"], flightTime=estimatedFlightTime)
 
         db.session.add(gpsData)
         db.session.add(telemData)
         db.session.commit()
 
-
     return recivedData, estimatedFlightTime # RETURNS TRUE TO NOT STOP READING AND WRITING
+
 
 
 
@@ -147,25 +152,22 @@ def elapsedTime(startTimeFloat):
 
 
 def TX_RX_main(app, reciveData, transmitData): 
+    i, totalTime = 0, 0
 
-    i, totalTime, prevPacket = 0, 0, "None"
 
-    totalPakcets = []
 
     with app.app_context(): # TO GET FULL PERMISSIONS TO READ AND WRITE TO DB
-        while True: 
-            startTime = time.time() # GETS THE CURRENT TIME
-
+        while True:
             hasStartedFlight = readGobalFlaskVar("transmitData", dataLock, log=False)["basic"]["runFlight"] # CHECKS IF THE USER HAS STARTED HIS FLIGHT
 
-            if hasStartedFlight == 1:
+            while hasStartedFlight == 1: 
+                startTime = time.time() # GETS THE CURRENT TIME
                 packet = radio.receive() # GETS DATA FROM THE RADIO
-                if packet is not None and packet != prevPacket: # IF THERE IS A PACKET
-                    prevPacket = packet
 
+                if packet is not None: # IF THERE IS A PACKET   
                     try:
                         recvieData_ = uncompressData(dictValues = str(packet, "utf-8"), emptyDict=emptyDict) # TRANSFORMES THE DATA TO A READEBLE DICTIONARY        
-                        
+
                         if recvieData_ != None: 
                             recvieData_, flightTime = writeReciveData(recvieData_) # WRITES THE DATA TO THE DB
                             recvieData_["flightTime"] = flightTime # ADDS THE FLIGHT TIME TO THE RECIVE DATA VARIABLE, THIS IS FOR THE GRAPH UPDATING
@@ -178,24 +180,28 @@ def TX_RX_main(app, reciveData, transmitData):
                     except UnicodeDecodeError: 
                         logging.error("There was a problem unpacking the recived data")
 
-                    
 
-                    sendData(transmitData) # SENDS THE DATA IN "transmit.json"
+
+                    sendData(transmitData)  # SENDS THE DATA IN "transmitData"
+
+
+                    # THERE IS AN ERROR HERW WITH THE TOTAL TIME, I HAVE NO IDEA WHY
 
                     if loggingLevel <= 10: # IF YOU WANT TO LOG OUT THE RESULT
                         i+=1 # ADDS 1 TO THE INDEX VARIABLE, THIS IS TO CALCULATE AVG TIME
-                        totalTime += elapsedTime(startTime) # ADDS THE ELAPSED TIME TO THE TOTALTIME VARIABLE
-                        totalPakcets.append(packet)
+                        totalTime+=elapsedTime(startTime)
+                        #print()
+                        #print(recvieData_)
+                        #print(totalTime, i, totalTime/i)
+                        #print()
 
-                        if str(i)[len(str(i)) -1] == "0": # IF I ENDS WITH "8" (EVRY 10TH TIME)
+                        if str(i)[len(str(i)) -1] == "8": # IF I ENDS WITH "8" (EVRY 10TH TIME)
                             print()
-                            logging.debug(f"     Avrage Transmit and recive time: {round(totalTime/i, 4)}") # LOG OUT THE AVG TIME
-                            #print(totalPakcets)
+                            #logging.debug(f"     Avrage Transmit and recive time: {round(totalTime/i, 4)}") # LOG OUT THE AVG TIME
                             print()
                             #totalTime, i = 0, 0
-
-            else: 
-                sendData(transmitData) # SENDS THE DATA IN "transmit.json"
+            sendData(transmitData) # SENDS THE DATA IN "transmitData"
+            time.sleep(TX_RX_sleep/10)
 
 
 

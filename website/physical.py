@@ -88,11 +88,10 @@ def mainSwitch(app, transmitData):
 
 
 
-
-            if loggingLevel <= 10: # IF IT SHULD LOG OUT THE CURRENT HEADING
-                i+=1 # ADDS 1 TO I, TO NOT PRINT OUT ALL OF THE TIME
-                if str(i)[len(str(i)) -1] == "8" and prevServoDeg != None: # IF I END WITH 8 (EVRY 10'TH TIME), AND "servoDeg" IS DEFINED
-                    logging.debug(f"     Current Servo Pos: {prevServoDeg}") # LOG OUT THE CURRENT HEADING
+                if loggingLevel <= 10: # IF IT SHULD LOG OUT THE CURRENT HEADING
+                    i+=1 # ADDS 1 TO I, TO NOT PRINT OUT ALL OF THE TIME
+                    if str(i)[len(str(i)) -1] == "8" and prevServoDeg != None: # IF I END WITH 8 (EVRY 10'TH TIME), AND "servoDeg" IS DEFINED
+                        logging.debug(f"     Current Servo Pos: {prevServoDeg}") # LOG OUT THE CURRENT HEADING
 
             time.sleep(TX_RX_sleep)  # SLEEP 
 

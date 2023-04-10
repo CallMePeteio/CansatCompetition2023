@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <h5 class="display-4 spacer" style="text-align: center;">Atmospheric Temperature</h5>
+    <h5 class="display-4 spacer" style="text-align: center;">Atmospheric Pressure</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
             {% set pressureIpAdress = graphUrl + ":5100" %}
@@ -36,27 +36,35 @@
         </div>
     </div>
 
-    <h5 class="display-4 spacer" style="text-align: center;">Pressure</h5>
+    <h5 class="display-4 spacer" style="text-align: center;">Humidity</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
-            {% set pressureIpAdress = graphUrl + ":5400" %}
+            {% set pressureIpAdress = graphUrl + ":5300" %}
             <iframe src="{{pressureIpAdress}}" style="width: 100vh; height: 100%;"></iframe>
         </div>
     </div>
 
 
-    <h5 class="display-4 spacer" style="text-align: center;">Humidity</h5>
+    <h5 class="display-4 spacer" style="text-align: center;">Gas</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
-            {% set humidityIpAdress = graphUrl + ":5300" %}
+            {% set humidityIpAdress = graphUrl + ":5400" %}
             <iframe src="{{humidityIpAdress}}" style="width: 100vh; height: 100%;"></iframe>
         </div>
     </div>
 
-    <h5 class="display-4 spacer" style="text-align: center;">Orientation</h5>
+    <h5 class="display-4 spacer" style="text-align: center;">Carbon Dioxide (parts pr million)</h5>
     <div class="col-sm-6 col-md-4 chartBox">
         <div class="chart-box chartBox">
-            {% set orientationIpAdress = graphUrl + ":5500" %}
+            {% set orientationIpAdress = graphUrl + ":5600" %}
+            <iframe src="{{orientationIpAdress}}" style="width: 100vh; height: 100%;"></iframe>
+        </div>
+    </div>
+
+    <h5 class="display-4 spacer" style="text-align: center;">TVOC (50 parts pr billion)</h5>
+    <div class="col-sm-6 col-md-4 chartBox">
+        <div class="chart-box chartBox">
+            {% set orientationIpAdress = graphUrl + ":5700" %}
             <iframe src="{{orientationIpAdress}}" style="width: 100vh; height: 100%;"></iframe>
         </div>
     </div>

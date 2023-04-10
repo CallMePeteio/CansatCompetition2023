@@ -43,19 +43,13 @@ class Telemdata(db.Model):
     flightId = db.Column(db.Integer, db.ForeignKey("flightmaster.id"))
     time = db.Column(db.DateTime(timezone=True), default=func.now())
 
-
-    atmoTemp = db.Column(db.Float(60))
     temperature = db.Column(db.Float(60))
-    humidity = db.Column(db.Float(60))
     pressure = db.Column(db.Float(60))
+    humidity = db.Column(db.Float(60))
 
-    accelX = db.Column(db.Float(60))
-    accelY = db.Column(db.Float(60))
-    accelZ = db.Column(db.Float(60))
-
-    rollDeg = db.Column(db.Float(60))
-    pitchDeg = db.Column(db.Float(60))
-    yawDeg = db.Column(db.Float(60))
+    gas = db.Column(db.Float(60))
+    co2 = db.Column(db.Float(60))
+    tvoc = db.Column(db.Float(60))
 
     flightTime = db.Column(db.Float(150))
 
@@ -67,11 +61,4 @@ class Telemdata(db.Model):
 
 
 
-    
-
-
-    #noteId = db.relationship('Note')
-    #west = db.Column(db.Integer, db.ForeginKey("user.id"))
-    #west = db.Column(db.String(150), unique=True)
-    
     
