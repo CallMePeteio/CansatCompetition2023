@@ -140,6 +140,16 @@ Returns:
     None
 """
 
+
+def setGlobalVarDic(inputDic, globalDic):
+    for key, value in inputDic.items():
+        if key in globalDic:
+            if isinstance(globalDic[key], dict) and isinstance(value, dict):
+                globalDic[key].update(value)
+            else: 
+                globalDic[key] = value
+
+"""
 def setGlobalVarDic(inputDic, globalDic):
     
     for key in globalDic.keys(): # LOOPS OVER ALL OF THE KEYS IN "globalVar"
@@ -158,7 +168,7 @@ def setGlobalVarDic(inputDic, globalDic):
         else: 
            globalDic[key] = inputDic[key] # SET THE DATA FROM "inputVar" to "globalVar"
 
-
+"""
 """
 _______________________________________ setGlobalVarList ________________________________________
 """

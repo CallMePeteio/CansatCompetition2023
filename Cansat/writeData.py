@@ -101,7 +101,6 @@ def compressData(dictionary, seperator=","):
 
 
 def sendData(transmitData):
-    print(transmitData)
     compresseData = compressData(transmitData)  # COMPRESSES THE DATA
     radio.send(bytes(compresseData, "utf-8")) # SENS THE COMPRESSED DATA DICT WITH THE rfm9x LORA RADIO
 
@@ -110,7 +109,6 @@ def sendData(transmitData):
 
 def reciveDataFunc(reciveData):
     packet = radio.receive()
-
     if packet is not None: 
         
         try: 
@@ -143,7 +141,7 @@ def TX_RX_main(gpsData, transmitData, reciveData):
         run = sendData(transmitData) # TRANSMITS THE DATA, FROM THE global "transmitData" VARIABLE
 
 
-        if elapsedTime(startTime) < TX_RX_sleep * 0.48: # IF THERE IS ENOUGH TIME LEFT TO RECIVE DATA
+        if elapsedTime(startTime) < TX_RX_sleep * 0.4: # IF THERE IS ENOUGH TIME LEFT TO RECIVE DATA
             rxPacket = reciveDataFunc(reciveData) # RECIVES THE DATA
         else:
             rxPacket = 0

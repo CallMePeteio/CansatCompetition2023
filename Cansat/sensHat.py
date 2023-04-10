@@ -82,41 +82,62 @@ def getSensorData(decimalPoint=1):
         return [temp, tempPressure, humidity, pressure, accel["x"], accel["y"], accel["z"], round(orientation["roll"], decimalPoint), round(orientation["pitch"], decimalPoint), round(orientation["yaw"], decimalPoint)]
 
 
-def getSensorDataExternal(TX_RX_sleep):
+def getSensorDataExternal(TX_RX_sleep, transmitData, decimalPoint=1):
         
-    for _ in range(int(TX_RX_sleep * 10)): # LOOPS OVER MULTIBLE TIMES OVER THE TRY EXCEPT STATMENT
+    
+    i, totalTime =0, 0
+    timeout = time.time()+TX_RX_sleep+0.5 # CALCULATES THE MAXIMUM AMOUNT OF TIME THAT CAN BE USED - THE TIME IT USUALLY TAKES TO GET DATA FROM THE SENS HAT
+
+    while time.time() < timeout: # WHILE IT HAS USED LESS TIME THAN THE TIMEOUT
         try: 
-            i=0 # KEEPS TRACK OVER THE AMOUNT TRIED
-            while ccs811.data_ready == False: # CHECKS IF THE "css811" SENSOR IS READY TO SEND DATA
-                if i > int(TX_RX_sleep*10): # IF IT NEEDS TO TRY MORE THAN 10 TRIES TO READ DATA
-                    logging.critical(f"     The ccs811 sensor is not ready! Times tried: {i}") # LOGS OUT THE ERROR
+            startTime = time.time()
+            if ccs811.data_ready: # IF THE SENSOR IS READY TO SEND DATA
+                
+ 
+                tvoc = ccs811.tvoc
+                co2 = ccs811.eco2
 
-                i+=1 # ADDS ONE TO I 
-                time.sleep(TX_RX_sleep/10) # SLEEPS FOR A BIT
-        
+                
+                temp = round(bme680.temperature, decimalPoint)
+                gas = round(bme680.gas, decimalPoint)
+                humidity = round(bme680.humidity, decimalPoint)
+                pressure = round(bme680.pressure, 3)
 
-            co2 = ccs811.eco2
-            tvoc = ccs811.tvoc
+                #i+=1
 
-            temp = bme680.temperature
-            gas = bme680.gas
-            humidity = bme680.humidity
-            pressure = bme680.pressure
 
-            return [temp, pressure, humidity, gas, co2, tvoc]
-
+                #elapsedTime = time.time() - startTime
+                #totalTime+=elapsedTime
+                #logging.critical(f"    Total Time: {totalTime}") 
+                #logging.critical(f"    Avrage Time: {totalTime/i}")
+                
+                if tvoc > 2000: # ADDS A FILTER SO WE DONT GET CRAZY HIGHT RESULTS, THAT SOMETIMES HAPPENDS
+                    tvoc = trnasmitData["telemData"]["tvoc"]
+                
+                return [temp, pressure, humidity, gas, co2, tvoc]
+            else:
+                pass
+                #elapsedTime = time.time() - startTime
+                #totalTime+=elapsedTime
+                
+            
+                #i+=1
+                time.sleep(i/5)
+                #if i > 0:
+                #    logging.critical(f"    Total Time: {totalTime}") 
+                #    logging.critical(f"    Avrage time: {totalTime/i} ")
         except Exception as error:
-            logging.error(f"     There was an error reading data from the external Sensors \n     Error msg:  {error}")
+            logging.error(f"     There was an error reading data from the external Sensors \nError msg:     {error}")
             time.sleep(TX_RX_sleep/4)
     
-    logging.critical("   Skipped reading data from the external sensors, because it gave to many errors")
+    logging.critical("      External data reading took to long to read!")
     return None
 
 
 
 
 def writeSensorData(gpsData, transmitData): 
-
+    i, totalTime =0, 0
     dataDict = {"gps": {"lat": None, "lon": None}, "telemData": {"temprature": None, "pressure": None, "humidity": None, "gas": None, "co2": None, "tvoc": None}}
     while True: 
             startTime = time.time() # GETS THE CURRENT TIME
@@ -124,9 +145,8 @@ def writeSensorData(gpsData, transmitData):
                 #sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
                 #print(sensorData)
 
-            exSensData = getSensorDataExternal(TX_RX_sleep)
+            exSensData = getSensorDataExternal(TX_RX_sleep, transmitData)
             #exSensData = None
-
             if exSensData != None:     
                 dataDict = {"gps": {"lat": gpsData[0], "lon": gpsData[1]}, "telemData": {"temprature": exSensData[0], "pressure": exSensData[1], "humidity": exSensData[2], "gas": exSensData[3], "co2": exSensData[4], "tvoc": exSensData[5]}}
                 setGlobalVarDic(dataDict, transmitData)
@@ -137,10 +157,16 @@ def writeSensorData(gpsData, transmitData):
                 elapsedTime = time.time() - startTime # CALCULATES THE ELAPSED TIME SINCE WE STARTED
                 if elapsedTime < TX_RX_sleep: # IF THE SCRIPT HAS USED MORE TIME THAN IT SHULD
                         time.sleep(TX_RX_sleep - elapsedTime) # SLEEPS THE PERFECT AMOUNT OF TIME
-                else: 
-                        logging.critical(f"      The write sensor script used to mutch time, time constraint: {TX_RX_sleep}. Used time: {elapsedTime}")
+                
+                #else: 
+                        #logging.critical(f"      The write sensor script used to mutch time, time constraint: {TX_RX_sleep}. Used time: {elapsedTime}")
+                
+                if loggingLevel >= 10:
+                    i+=1
+                    totalTime += time.time() - startTime
 
-
+                    if str(i)[len(str(i))-1] == "8":
+                        logging.info(f"     Avrage sensor upate time: {totalTime/i}")
 
 
 #while True: 
