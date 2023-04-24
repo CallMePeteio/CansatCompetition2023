@@ -128,7 +128,6 @@ def renderHome():
             con.close()
 
 
-
     onCansat = readGobalFlaskVar("transmitData", dataLock)["basic"]["isOn"]  # CHECKS IF THE CANSAT IS ON
     startVideo = readGobalFlaskVar("transmitData", dataLock)["camera"]["startVid"] # CHECKS IF THE USER WANTS TO START RECORDING VIDEO
     videoLength = readGobalFlaskVar("transmitData", dataLock)["camera"]["videoLength"]  # GETS THE VIDEO LENGTH FROM THE GLOBAL VARIABLE "transmitData" (json)

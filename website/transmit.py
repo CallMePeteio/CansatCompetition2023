@@ -5,9 +5,11 @@ from . import pathToDB, logging, loggingLevel, timeToMinutes, selectFromDB, db, 
 from .models import GPSdata, Telemdata
 from flask import current_app
 
+from . import TXphotoTries
 
-
-from . import readGobalFlaskVar, dataLock
+from . import writeGobalFlaskVar
+from . import readGobalFlaskVar
+from . import dataLock
 from sys import getsizeof
 
 import threading
@@ -143,6 +145,19 @@ def writeReciveData(recivedData):
     return recivedData, estimatedFlightTime # RETURNS TRUE TO NOT STOP READING AND WRITING
 
 
+def handleCameraTX(transmitData, totalImageTX, TXphotoTries): 
+    if transmitData["camera"]["photo"] == 1: # IF THE USER HAS TAKEN A PHOTO
+
+        if totalImageTX > TXphotoTries: # IF IT HAS TRIED ENOUGHT TIMES
+            writeGobalFlaskVar(["transmitData", "camera", "photo"], 0, dataLock) #  SETS THE "photo" VALUE IN THE GLOBAL VARIABLE (FLASK) "transmitData" FILE TO 0
+            totalImageTX = 0 # RESETS THE TOTAL IMAGES TAKEN
+        else: 
+            totalImageTX +=1 # ADDS ONE TO THE AMOUNT OF TRIES
+
+        return totalImageTX
+    return totalImageTX
+            
+
 
 
 
@@ -152,7 +167,7 @@ def elapsedTime(startTimeFloat):
 
 
 def TX_RX_main(app, reciveData, transmitData): 
-    i, totalTime = 0, 0
+    i, totalImageTX, totalTime = 0, 0, 0
 
 
 
@@ -181,8 +196,9 @@ def TX_RX_main(app, reciveData, transmitData):
                         logging.error("There was a problem unpacking the recived data")
 
 
-
+                
                     sendData(transmitData)  # SENDS THE DATA IN "transmitData"
+                    totalImageTX = handleCameraTX(transmitData, totalImageTX, TXphotoTries) # HANDELS THE IMAGE RESETTING, SENDS THE PHOTO HIGH PACKET 10 TIMES TO INSURE THE CANSAT RECIVES IT, THEN RESETS IT SETS THE "photo" variable in "transmitData" to 0 (low)
 
 
                     # THERE IS AN ERROR HERW WITH THE TOTAL TIME, I HAVE NO IDEA WHY
