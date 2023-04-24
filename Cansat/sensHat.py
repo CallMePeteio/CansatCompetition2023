@@ -17,10 +17,16 @@ import json
 
 i2c = BitBangI2C(board.SCL, board.SDA) # ININTIALIZES THE I2C CONNECTION
 
-ccs811 = CCS811(i2c) # CONNECTS TO THE "cca811" SENSOR
-time.sleep(2) # SLEEPS A BEIT TO MAKE SURE THE "ccs811" SENSOR IS DONE
-bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c) # ININTIALIZES THE "bme680" SENSOR
 
+while True:
+    try: 
+        ccs811 = CCS811(i2c) # CONNECTS TO THE "cca811" SENSOR
+        time.sleep(2) # SLEEPS A BEIT TO MAKE SURE THE "ccs811" SENSOR IS DONE
+        bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c) # ININTIALIZES THE "bme680" SENSOR
+        break
+    except Exception as error: 
+        logging.error(f"     There was an error initilaizing the sensors:\nError:    {error}")
+        time.sleep(0.5)
 #sense = SenseHat() # MAKES THE SENS HAT OBJECT
 
 
@@ -66,7 +72,7 @@ def getSensorData(decimalPoint=1):
         tempPressure = round(sense.get_temperature_from_pressure(), decimalPoint) # GETS THE THE TEMPRATRUE FROM THE PRESSURE SENSOR
 
         humidity = round(sense.get_humidity(), decimalPoint) # GETS THE HUMIDITY
-        pressure = round(sense.get_pressure(), decimalPoint) # GETS THE ATMOSPHERIC PRESSURE
+        pressure = round(sense.get_pressure(), 3) # GETS THE ATMOSPHERIC PRESSURE
 
         #accel = sense.get_accelerometer() # THIS IS THE ACCELERATION DATA
 
@@ -112,7 +118,7 @@ def getSensorDataExternal(TX_RX_sleep, transmitData, decimalPoint=1):
                 #logging.critical(f"    Avrage Time: {totalTime/i}")
                 
                 if tvoc > 2000: # ADDS A FILTER SO WE DONT GET CRAZY HIGHT RESULTS, THAT SOMETIMES HAPPENDS
-                    tvoc = trnasmitData["telemData"]["tvoc"]
+                    tvoc = transmitData["telemData"]["tvoc"]
                 
                 return [temp, pressure, humidity, gas, co2, tvoc]
             else:
@@ -142,8 +148,8 @@ def writeSensorData(gpsData, transmitData):
     while True: 
             startTime = time.time() # GETS THE CURRENT TIME
 
-                #sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
-                #print(sensorData)
+            #sensorData = getSensorData() # GETS THE DATA FROM THE PI SENS HAT (list)
+            #print(sensorData)
 
             exSensData = getSensorDataExternal(TX_RX_sleep, transmitData)
             #exSensData = None

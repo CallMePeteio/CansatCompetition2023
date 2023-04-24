@@ -23,12 +23,12 @@ logger.setLevel(loggingLevel) # SETS THE LEVEL AS DEFINED ABOVE
 logger = formatFont(logger) # MAKES THE LOGGING FORMAT AND COLORS
 
 
-videoPath="/home/pi/Desktop/coding/Cansat/video/"
-imgPath="/home/pi/Desktop/mainCode/CansatCompetition2023/Cansat/img"
+videoPath="/home/pi/code/CansatCompetition2023/cameraOutput/video/"
+imgPath="/home/pi/code/CansatCompetition2023/cameraOutput/image/"
 videoRes, fps, imgScaleXY, imgFlip = (640, 480), 10, (1,1), -1
 
 TX_RX_sleep = 0.7
-
+destinationGPS = (67.240672, 14.613711)
 
 CS = DigitalInOut(board.CE1) # GETS WHAT THE CS PIN IS, AND MAKES IT AS A OBJ
 RESET = DigitalInOut(board.D12) # THIS IS WHAT THE RESET PIN IS TO THE LORA RADIO, THIS IS NOT THE SAME PIN AS IN THE Rfm9x DOCUMENTATION, BECAUSE THE PI SENS HAT ALREADY UES THE PIN
@@ -39,7 +39,6 @@ radio = adafruit_rfm9x.RFM9x(spi, CS, RESET, 433.0) # MAKES THE radio OBJECT FOR
 
 def startApp(): 
     from .camera import Camera
-
     from .sensHat import writeSensorData
     from .writeData import TX_RX_main
     from .gpsModule import getGpsPos

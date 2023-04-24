@@ -114,7 +114,6 @@ def reciveDataFunc(reciveData):
         try: 
             rxData = uncompressData(str(packet, "utf-8"), emptyDict)
             setGlobalVarDic(rxData, reciveData) # SETS THE GLOBAL VARIABLE ("between threads") "reciveData"
-
             return 1 # RETURNS 1, THIS IS TO CALULATE THE AVRAGE PACKET RECIVE RATE
 
         except UnicodeDecodeError: 
